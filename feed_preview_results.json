@@ -1,0 +1,124 @@
+{
+  "user_id": "sports_preview",
+  "items": [
+    {
+      "article_id": "art_945bb285629982eb",
+      "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+      "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+      "source": "搜狐体育",
+      "published_at": "2026-06-09T05:18:16.639331Z",
+      "category": "sports",
+      "recommend_reason": "匹配sports，关注词 NBA，源标签 sports",
+      "source_tags": [
+        "sports",
+        "portal",
+        "sports.sohu.com"
+      ],
+      "matched_profile_terms": [
+        "sports",
+        "NBA"
+      ],
+      "actions": [
+        "ask",
+        "deep_dive",
+        "save",
+        "dislike"
+      ],
+      "score": 1.142
+    },
+    {
+      "article_id": "art_e7faad46c66ec87d",
+      "title": "客户端下载落地页",
+      "summary": "客户端下载落地页",
+      "source": "新浪体育",
+      "published_at": "2026-06-09T05:18:15.945039Z",
+      "category": "sports",
+      "recommend_reason": "匹配sports，源标签 sports",
+      "source_tags": [
+        "sports",
+        "portal",
+        "sports.sina.com.cn"
+      ],
+      "matched_profile_terms": [
+        "sports"
+      ],
+      "actions": [
+        "ask",
+        "deep_dive",
+        "save",
+        "dislike"
+      ],
+      "score": 0.928
+    },
+    {
+      "article_id": "art_e6a42f23c92b8a7a",
+      "title": "球队完成关键引援补强阵容",
+      "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+      "source": "新浪体育",
+      "published_at": "2026-06-08T19:19:18.274620Z",
+      "category": "sports",
+      "recommend_reason": "匹配sports，源标签 sports",
+      "source_tags": [
+        "sports",
+        "portal",
+        "sports.sina.com.cn"
+      ],
+      "matched_profile_terms": [
+        "sports"
+      ],
+      "actions": [
+        "ask",
+        "deep_dive",
+        "save",
+        "dislike"
+      ],
+      "score": 0.888
+    },
+    {
+      "article_id": "art_319fef74a8cf6c17",
+      "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+      "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+      "source": "虎扑",
+      "published_at": "2026-06-09T05:18:17.182150Z",
+      "category": "sports",
+      "recommend_reason": "匹配sports，源标签 sports",
+      "source_tags": [
+        "sports",
+        "portal",
+        "hupu.com"
+      ],
+      "matched_profile_terms": [
+        "sports"
+      ],
+      "actions": [
+        "ask",
+        "deep_dive",
+        "save",
+        "dislike"
+      ],
+      "score": 0.856
+    },
+    {
+      "article_id": "art_01d4901cfd2e7f4b",
+      "title": "《赛博朋克2077》黑人演员称《007》不需要觉醒！别硬塞黑人 _ 游民星空 GamerSky.com",
+      "summary": "伊德瑞斯·艾尔巴明确表示邦德电影不需要变得觉醒",
+      "source": "游民星空",
+      "published_at": "2026-06-09T05:18:10.363559Z",
+      "category": "game",
+      "recommend_reason": "近期热点",
+      "source_tags": [
+        "game",
+        "portal",
+        "gamersky.com"
+      ],
+      "matched_profile_terms": [],
+      "actions": [
+        "ask",
+        "deep_dive",
+        "save",
+        "dislike"
+      ],
+      "score": 0.584
+    }
+  ]
+}

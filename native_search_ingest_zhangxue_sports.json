@@ -1,0 +1,168 @@
+{
+  "query": "张雪机车",
+  "category_scope": [
+    "sports"
+  ],
+  "source_scope": [],
+  "discovered_count": 10,
+  "fetched_count": 8,
+  "indexed_count": 8,
+  "mysql_ready": true,
+  "elasticsearch_configured": true,
+  "discovered": [
+    {
+      "source_id": "cctv_sports",
+      "title": "“ 机车 之岛”的惊叹与期盼 台湾社会热议“ 张雪 机车 ”夺冠",
+      "url": "https://news.cctv.com/2026/04/06/ARTIGDKLnZllGKqHNCYIrjjt260406.shtml",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "cctv_sports",
+      "title": "从相信到夺冠，见证中国摩托车成长——专访“ 张雪 机车 ”车手德比斯",
+      "url": "https://people.cctv.com/2026/06/03/ARTItdI5X2KiVichhoUwNRjq260603.shtml",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "cctv_sports",
+      "title": "WSBK西班牙站： 张雪 机车 第二回合获第八",
+      "url": "https://sports.cctv.com/2026/06/01/ARTIlMjOBuFVJdFeWF86yhzA260601.shtml",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "cctv_sports",
+      "title": "WSBK捷克站：“ 张雪 机车 ”位列超级杆位赛第三名",
+      "url": "https://sports.cctv.com/2026/05/16/ARTIFwiFZS7wrCGevM33eQZH260516.shtml",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "cctv_sports",
+      "title": "“ 张雪 机车 ”西班牙阿拉贡站首回合获第8名",
+      "url": "https://sports.cctv.com/2026/05/30/ARTIVWxhbzXzTD8Psozctt7C260530.shtml",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "hupu",
+      "title": "张雪 机车 连续两天的比赛都拿第八，说白了，就是一个官方规则可以限制性能的小比赛，不知道为什么营销成各种弯道超车。",
+      "url": "https://bbs.hupu.com/639652293.html",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "hupu",
+      "title": "张雪 机车 也顶上来了！",
+      "url": "https://bbs.hupu.com/639670008.html",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "hupu",
+      "title": "[流言板]美国博主承认被 张雪 机车 打脸",
+      "url": "https://bbs.hupu.com/639734462.html",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "hupu",
+      "title": "[流言板] 张雪 机车 祝高考生收获理想结果",
+      "url": "https://bbs.hupu.com/639734316.html",
+      "snippet": "",
+      "published_at": null
+    },
+    {
+      "source_id": "hupu",
+      "title": "安踏官宣成为 张雪 机车 全球战略合作品牌，这波联名什么水平？",
+      "url": "https://bbs.hupu.com/639679561.html",
+      "snippet": "",
+      "published_at": null
+    }
+  ],
+  "fetched": [
+    {
+      "article_id": "art_4acb87ea40745f7e",
+      "source_id": "cctv_sports",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "“机车之岛”的惊叹与期盼 台湾社会热议“张雪机车”夺冠",
+      "url": "https://news.cctv.com/2026/04/06/ARTIGDKLnZllGKqHNCYIrjjt260406.shtml",
+      "content_chars": 34,
+      "indexed": true
+    },
+    {
+      "article_id": "art_d6d009b6dd6e30da",
+      "source_id": "cctv_sports",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "从相信到夺冠，见证中国摩托车成长——专访“张雪机车”车手德比斯",
+      "url": "https://people.cctv.com/2026/06/03/ARTItdI5X2KiVichhoUwNRjq260603.shtml",
+      "content_chars": 1404,
+      "indexed": true
+    },
+    {
+      "article_id": "art_4fb999ee0d0b1c67",
+      "source_id": "cctv_sports",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "WSBK西班牙站：张雪机车第二回合获第八",
+      "url": "https://sports.cctv.com/2026/06/01/ARTIlMjOBuFVJdFeWF86yhzA260601.shtml",
+      "content_chars": 629,
+      "indexed": true
+    },
+    {
+      "article_id": "art_f1eb5925126ba6d1",
+      "source_id": "cctv_sports",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "WSBK捷克站：“张雪机车”位列超级杆位赛第三名",
+      "url": "https://sports.cctv.com/2026/05/16/ARTIFwiFZS7wrCGevM33eQZH260516.shtml",
+      "content_chars": 128,
+      "indexed": true
+    },
+    {
+      "article_id": "art_576fc73931f76682",
+      "source_id": "cctv_sports",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "“张雪机车”西班牙阿拉贡站首回合获第8名",
+      "url": "https://sports.cctv.com/2026/05/30/ARTIVWxhbzXzTD8Psozctt7C260530.shtml",
+      "content_chars": 133,
+      "indexed": true
+    },
+    {
+      "article_id": "art_b103133e4def3091",
+      "source_id": "hupu",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "张雪机车连续两天的比赛都拿第八，说白了，就是一个官方规则可以限制性能的小比赛，不知道为什么营销成各种弯道超车。-汽车-机车区-虎扑社区",
+      "url": "https://bbs.hupu.com/639652293.html",
+      "content_chars": 3886,
+      "indexed": true
+    },
+    {
+      "article_id": "art_41bd8a16c164eb8b",
+      "source_id": "hupu",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "张雪机车也顶上来了！-步行街主干道-虎扑社区",
+      "url": "https://bbs.hupu.com/639670008.html",
+      "content_chars": 1181,
+      "indexed": true
+    },
+    {
+      "article_id": "art_d0ff473f18d4f3af",
+      "source_id": "hupu",
+      "section_key": "sports",
+      "category": "sports",
+      "title": "[流言板]美国博主承认被张雪机车打脸-步行街主干道-虎扑社区",
+      "url": "https://bbs.hupu.com/639734462.html",
+      "content_chars": 759,
+      "indexed": true
+    }
+  ],
+  "errors": [],
+  "mysql_error": null
+}

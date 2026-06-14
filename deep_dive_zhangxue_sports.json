@@ -1,0 +1,275 @@
+{
+  "topic": "张雪机车",
+  "strategy": {
+    "vertical": "围绕原主题抽取更具体主体、影响链、时间线和关键词继续搜索。",
+    "horizontal": "从召回结果中抽取相邻事件、关联主体、上下游影响和跨领域关键词扩展搜索。",
+    "llm_planner": "预留：接入 LLM 后由模型从证据中生成下一轮事件、主体、搜索词和停止条件。"
+  },
+  "seed_results": [
+    {
+      "article_id": "art_945bb285629982eb",
+      "source_id": "sohu_sports",
+      "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+      "url": "https://www.sohu.com/a/1034055835_458722?scm=10001.559_14-200000.0.0-0-0-0-0.",
+      "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+      "category": "sports",
+      "published_at": "2026-06-09T05:18:16.639331Z",
+      "score": 1.0,
+      "origin": "elasticsearch"
+    },
+    {
+      "article_id": "art_319fef74a8cf6c17",
+      "source_id": "hupu",
+      "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+      "url": "https://bbs.hupu.com/639821011.html",
+      "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+      "category": "sports",
+      "published_at": "2026-06-09T05:18:17.182150Z",
+      "score": 0.99,
+      "origin": "local"
+    },
+    {
+      "article_id": "art_e7faad46c66ec87d",
+      "source_id": "sina_sports",
+      "title": "客户端下载落地页",
+      "url": "http://news.sina.com.cn/m/sinanews.html",
+      "summary": "客户端下载落地页",
+      "category": "sports",
+      "published_at": "2026-06-09T05:18:15.945039Z",
+      "score": 0.98,
+      "origin": "local"
+    },
+    {
+      "article_id": "art_e6a42f23c92b8a7a",
+      "source_id": "sina_sports",
+      "title": "球队完成关键引援补强阵容",
+      "url": "https://example.local/sina_sports/9",
+      "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+      "category": "sports",
+      "published_at": "2026-06-08T19:19:18.274620Z",
+      "score": 0.97,
+      "origin": "local"
+    }
+  ],
+  "relevant_seed_count": 0,
+  "expanded_queries": [
+    {
+      "query": "张雪机车 新闻",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 新闻 方向"
+    },
+    {
+      "query": "张雪机车 赛事",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 赛事 方向"
+    },
+    {
+      "query": "张雪机车 赛程",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 赛程 方向"
+    },
+    {
+      "query": "张雪机车 车队",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 车队 方向"
+    },
+    {
+      "query": "张雪机车 世界超级摩托车锦标赛",
+      "direction": "horizontal",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：横向检查 世界超级摩托车锦标赛 关联"
+    },
+    {
+      "query": "张雪机车 WSBK",
+      "direction": "horizontal",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：横向检查 WSBK 关联"
+    },
+    {
+      "query": "张雪机车 WorldSSP",
+      "direction": "horizontal",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：横向检查 WorldSSP 关联"
+    },
+    {
+      "query": "张雪机车 摩托车制造",
+      "direction": "horizontal",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：横向检查 摩托车制造 关联"
+    }
+  ],
+  "evidence": [
+    {
+      "query": "张雪机车 新闻",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 新闻 方向",
+      "results": [
+        {
+          "article_id": "art_945bb285629982eb",
+          "source_id": "sohu_sports",
+          "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+          "url": "https://www.sohu.com/a/1034055835_458722?scm=10001.559_14-200000.0.0-0-0-0-0.",
+          "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:16.639331Z",
+          "score": 1.0,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_e6a42f23c92b8a7a",
+          "source_id": "sina_sports",
+          "title": "球队完成关键引援补强阵容",
+          "url": "https://example.local/sina_sports/9",
+          "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+          "category": "sports",
+          "published_at": "2026-06-08T19:19:18.274620Z",
+          "score": 0.99,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_319fef74a8cf6c17",
+          "source_id": "hupu",
+          "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+          "url": "https://bbs.hupu.com/639821011.html",
+          "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:17.182150Z",
+          "score": 0.98,
+          "origin": "local"
+        },
+        {
+          "article_id": "art_e7faad46c66ec87d",
+          "source_id": "sina_sports",
+          "title": "客户端下载落地页",
+          "url": "http://news.sina.com.cn/m/sinanews.html",
+          "summary": "客户端下载落地页",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:15.945039Z",
+          "score": 0.97,
+          "origin": "local"
+        }
+      ]
+    },
+    {
+      "query": "张雪机车 赛事",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 赛事 方向",
+      "results": [
+        {
+          "article_id": "art_945bb285629982eb",
+          "source_id": "sohu_sports",
+          "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+          "url": "https://www.sohu.com/a/1034055835_458722?scm=10001.559_14-200000.0.0-0-0-0-0.",
+          "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:16.639331Z",
+          "score": 1.0,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_e6a42f23c92b8a7a",
+          "source_id": "sina_sports",
+          "title": "球队完成关键引援补强阵容",
+          "url": "https://example.local/sina_sports/9",
+          "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+          "category": "sports",
+          "published_at": "2026-06-08T19:19:18.274620Z",
+          "score": 0.99,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_319fef74a8cf6c17",
+          "source_id": "hupu",
+          "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+          "url": "https://bbs.hupu.com/639821011.html",
+          "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:17.182150Z",
+          "score": 0.98,
+          "origin": "elasticsearch"
+        }
+      ]
+    },
+    {
+      "query": "张雪机车 赛程",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 赛程 方向",
+      "results": [
+        {
+          "article_id": "art_945bb285629982eb",
+          "source_id": "sohu_sports",
+          "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+          "url": "https://www.sohu.com/a/1034055835_458722?scm=10001.559_14-200000.0.0-0-0-0-0.",
+          "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:16.639331Z",
+          "score": 1.0,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_319fef74a8cf6c17",
+          "source_id": "hupu",
+          "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+          "url": "https://bbs.hupu.com/639821011.html",
+          "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:17.182150Z",
+          "score": 0.99,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_e6a42f23c92b8a7a",
+          "source_id": "sina_sports",
+          "title": "球队完成关键引援补强阵容",
+          "url": "https://example.local/sina_sports/9",
+          "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+          "category": "sports",
+          "published_at": "2026-06-08T19:19:18.274620Z",
+          "score": 0.98,
+          "origin": "elasticsearch"
+        }
+      ]
+    },
+    {
+      "query": "张雪机车 车队",
+      "direction": "vertical",
+      "rationale": "内部召回有结果但未命中核心词，先生成保守扩展查询：补充 车队 方向",
+      "results": [
+        {
+          "article_id": "art_319fef74a8cf6c17",
+          "source_id": "hupu",
+          "title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+          "url": "https://bbs.hupu.com/639821011.html",
+          "summary": "虎扑06月09日讯 FCE战队社媒官宣：Brlannn离队BR1ANN与 FINHAY CERBERUS结束旅程6个月不是很长的时",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:17.182150Z",
+          "score": 1.0,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_e6a42f23c92b8a7a",
+          "source_id": "sina_sports",
+          "title": "球队完成关键引援补强阵容",
+          "url": "https://example.local/sina_sports/9",
+          "summary": "俱乐部宣布签下核心位置球员，新赛季战术变化成为关注点。",
+          "category": "sports",
+          "published_at": "2026-06-08T19:19:18.274620Z",
+          "score": 0.99,
+          "origin": "elasticsearch"
+        },
+        {
+          "article_id": "art_945bb285629982eb",
+          "source_id": "sohu_sports",
+          "title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+          "url": "https://www.sohu.com/a/1034055835_458722?scm=10001.559_14-200000.0.0-0-0-0-0.",
+          "summary": "当地时间2026年6月8日，美国纽约，25/26赛季NBA总决赛G3，圣安东尼奥马刺 VS 纽约尼克斯。美国总统特朗普现身观战。…",
+          "category": "sports",
+          "published_at": "2026-06-09T05:18:16.639331Z",
+          "score": 0.98,
+          "origin": "elasticsearch"
+        }
+      ]
+    }
+  ],
+  "next_actions": [
+    "把高置信扩展词沉淀为用户专题任务的 watch_keywords。",
+    "把重复出现的主体和时间点写入专题时间线。",
+    "当新证据不足或查询开始重复时停止扩展。"
+  ]
+}

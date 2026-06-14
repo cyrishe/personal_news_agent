@@ -1,0 +1,185 @@
+{
+  "summary": {
+    "categories": [
+      "economy",
+      "tech",
+      "auto",
+      "game",
+      "anime",
+      "entertainment",
+      "sports"
+    ],
+    "sections": 22,
+    "saved_articles": 22,
+    "errors": 0
+  },
+  "results": [
+    {
+      "category": "economy",
+      "results": [
+        {
+          "source_id": "sina_finance",
+          "section_key": "economy",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "ifeng_finance",
+          "section_key": "economy",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "sohu_business",
+          "section_key": "economy",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "yicai",
+          "section_key": "economy",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "jiemian",
+          "section_key": "economy",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "tech",
+      "results": [
+        {
+          "source_id": "ithome",
+          "section_key": "tech",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "tmtpost",
+          "section_key": "tech",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "sina_tech",
+          "section_key": "tech",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "auto",
+      "results": [
+        {
+          "source_id": "sina_auto",
+          "section_key": "auto",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "sohu_auto",
+          "section_key": "auto",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "autohome",
+          "section_key": "auto",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "game",
+      "results": [
+        {
+          "source_id": "gamersky",
+          "section_key": "game",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "3dm",
+          "section_key": "game",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "17173",
+          "section_key": "game",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "ali213",
+          "section_key": "game",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "anime",
+      "results": [
+        {
+          "source_id": "gamersky_acg",
+          "section_key": "anime",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "entertainment",
+      "results": [
+        {
+          "source_id": "sina_ent",
+          "section_key": "entertainment",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "sohu_yule",
+          "section_key": "entertainment",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "ifeng_ent",
+          "section_key": "entertainment",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    },
+    {
+      "category": "sports",
+      "results": [
+        {
+          "source_id": "sina_sports",
+          "section_key": "sports",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "sohu_sports",
+          "section_key": "sports",
+          "links": 2,
+          "saved": 1
+        },
+        {
+          "source_id": "hupu",
+          "section_key": "sports",
+          "links": 2,
+          "saved": 1
+        }
+      ]
+    }
+  ]
+}

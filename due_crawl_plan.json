@@ -1,0 +1,78 @@
+{
+  "category": "politics",
+  "sections": [
+    {
+      "id": "url_8ef398d11ee1150d2a3f6218f3f855bb",
+      "source_id": "people_politics",
+      "section_key": "politics",
+      "name": "人民网时政",
+      "category": "politics",
+      "url": "https://politics.people.com.cn/index1.html",
+      "crawl_strategy": "list_page",
+      "crawl_enabled": true,
+      "last_crawled_at": null,
+      "source_name": "people_politics",
+      "source_tags": [
+        "politics",
+        "domestic",
+        "official",
+        "state_media",
+        "portal",
+        "politics.people.com.cn",
+        "policy"
+      ],
+      "priority": 1,
+      "crawl_interval_minutes": 20,
+      "due": true
+    },
+    {
+      "id": "url_9acaff64715ed0b68e7acb541f65a898",
+      "source_id": "cctv_news_china",
+      "section_key": "china",
+      "name": "央视新闻国内",
+      "category": "politics",
+      "url": "https://news.cctv.com/china/",
+      "crawl_strategy": "list_page",
+      "crawl_enabled": true,
+      "last_crawled_at": null,
+      "source_name": "cctv_news_china",
+      "source_tags": [
+        "politics",
+        "domestic",
+        "official",
+        "state_media",
+        "portal",
+        "news.cctv.com"
+      ],
+      "priority": 1,
+      "crawl_interval_minutes": 20,
+      "due": true
+    },
+    {
+      "id": "url_0873e9c431fdb1fb1c666836830c3e34",
+      "source_id": "cctv_news_world",
+      "section_key": "world",
+      "name": "央视新闻国际",
+      "category": "politics",
+      "url": "https://news.cctv.com/world/",
+      "crawl_strategy": "list_page",
+      "crawl_enabled": true,
+      "last_crawled_at": null,
+      "source_name": "cctv_news_world",
+      "source_tags": [
+        "politics",
+        "international",
+        "official",
+        "state_media",
+        "portal",
+        "news.cctv.com"
+      ],
+      "priority": 2,
+      "crawl_interval_minutes": 20,
+      "due": true
+    }
+  ],
+  "due_count": 3,
+  "total_returned": 3,
+  "mysql_ready": true
+}

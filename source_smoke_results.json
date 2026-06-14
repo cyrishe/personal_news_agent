@@ -1,0 +1,354 @@
+{
+  "summary": {
+    "total_sources": 29,
+    "ok_sources": 22,
+    "weak_sources": 0,
+    "error_sources": 0,
+    "skipped_sources": 7
+  },
+  "results": [
+    {
+      "source_id": "sina_finance",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "economy",
+          "url": "https://finance.sina.com.cn/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "新浪财经 连接财富",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "ifeng_finance",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "economy",
+          "url": "https://finance.ifeng.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "美银拉响警报：七成熊市信号已触发",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "sohu_business",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "economy",
+          "url": "https://business.sohu.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "五粮液邓敏“临危受命”",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "yicai",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "economy",
+          "url": "https://www.yicai.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "5月汽车销量前十已无燃油车",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "jiemian",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "economy",
+          "url": "https://www.jiemian.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "盘前机会前瞻_界面新闻",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "ithome",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "tech",
+          "url": "https://www.ithome.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "整治夸大宣传、只评不测、商测一体等问题，国家网信办、市场监管总局联合印发《网络测评活动规范》 - IT之家",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "tmtpost",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "tech",
+          "url": "https://www.tmtpost.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "苹果AI“翻身”，还得靠Gemini上位当“大脑”｜WWDC26-钛媒体官方网站",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "huxiu",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "sina_tech",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "tech",
+          "url": "https://tech.sina.com.cn/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "华为路由X3 Pro体验评测_原创_新浪众测",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "sina_auto",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "auto",
+          "url": "https://auto.sina.com.cn/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "【5-10万左右买什么车好】5-10万左右最好的车排行榜|5-10万汽车推荐 -新浪汽车",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "sohu_auto",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "auto",
+          "url": "https://auto.sohu.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "奇瑞轿车销量担当上新了 奇瑞艾瑞泽8征服版静态体验",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "ifeng_auto",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "autohome",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "auto",
+          "url": "https://www.autohome.com.cn/news/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "汽车之家_看车 买车 用车 换车,省时省心省钱!",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "gamersky",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "game",
+          "url": "https://www.gamersky.com/news/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "《赛博朋克2077》黑人演员称《007》不需要觉醒！别硬塞黑人 _ 游民星空 GamerSky.com",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "3dm",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "game",
+          "url": "https://www.3dmgame.com/news/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "世嘉年度游戏销量报告：《索尼克》系列达16亿部_3DM单机",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "17173",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "game",
+          "url": "https://news.17173.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "游戏资产工业化管线率先跑通：腾讯光子Light AI首次对外亮相__17173.com中国游戏门户站",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "ali213",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "game",
+          "url": "https://www.ali213.net/news/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "网吧经典单机游戏有哪些-网吧经典游戏大全_游侠网 Ali213.net",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "gamersky_acg",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "anime",
+          "url": "https://acg.gamersky.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "动画电影《航海王：红发歌姬》官宣定档 12月1日中国内地上映_动漫星空",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "dmzj",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "bilibili_search",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "tieba_acg",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "sina_ent",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "entertainment",
+          "url": "https://ent.sina.com.cn/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "李玟抑郁症去世_新浪网",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "sohu_yule",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "entertainment",
+          "url": "https://yule.sohu.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "钟丽缇送别出国读书的二女儿 母女互动温馨有爱",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "ifeng_ent",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "entertainment",
+          "url": "https://ent.ifeng.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "陈奕迅刘德华让张家辉别紧张：你可是出过唱片的歌手",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "douban_movie",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "sina_sports",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "sports",
+          "url": "https://sports.sina.com.cn/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "客户端下载落地页",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "qq_sports",
+      "status": "skipped",
+      "reason": "crawl_disabled"
+    },
+    {
+      "source_id": "sohu_sports",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "sports",
+          "url": "https://sports.sohu.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "NBA总决赛G3-尼克斯VS马刺 美国总统特朗普现身观战",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "source_id": "hupu",
+      "status": "ok",
+      "sections": [
+        {
+          "section_key": "sports",
+          "url": "https://www.hupu.com/",
+          "link_count": 5,
+          "fetch_ok": true,
+          "sample_title": "[流言板]FCE战队社媒官宣：Brlannn离队-绝地求生-虎扑社区",
+          "status": "ok"
+        }
+      ]
+    }
+  ]
+}

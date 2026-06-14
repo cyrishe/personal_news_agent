@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个人资讯助手</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>个人资讯助手</h1>
+        <p>经济 / 科技 / 汽车 / 游戏 / 动漫 / 娱乐 / 体育</p>
+      </div>
+      <button id="refresh">刷新</button>
+    </header>
+    <main class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>资讯流</h2>
+          <select id="category">
+            <option value="">全部</option>
+            <option value="economy">经济</option>
+            <option value="tech">科技</option>
+            <option value="auto">汽车</option>
+            <option value="game">游戏</option>
+            <option value="anime">动漫</option>
+            <option value="entertainment">娱乐</option>
+            <option value="sports">体育</option>
+          </select>
+        </div>
+        <div id="feed" class="list"></div>
+      </section>
+      <section class="panel">
+        <h2>热点事件</h2>
+        <div id="events" class="list compact"></div>
+      </section>
+      <section class="panel chat">
+        <h2>多轮深挖</h2>
+        <div id="messages" class="messages"></div>
+        <form id="chatForm">
+          <input id="message" placeholder="今天游戏圈有什么新闻？" />
+          <button>发送</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>时间线报告</h2>
+        <form id="reportForm" class="stack">
+          <input id="topic" value="新能源汽车价格战" />
+          <button>生成报告</button>
+        </form>
+        <pre id="report"></pre>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

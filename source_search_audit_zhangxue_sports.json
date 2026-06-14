@@ -1,0 +1,183 @@
+{
+  "query": "张雪机车",
+  "category": "sports",
+  "summary": {
+    "native_html_ready": 2,
+    "hold_unparsed_or_js_shell": 3,
+    "total": 5
+  },
+  "sources": [
+    {
+      "source_id": "cctv_sports",
+      "name": "央视体育",
+      "categories": [
+        "sports"
+      ],
+      "native_search_enabled": true,
+      "classification": "native_html_ready",
+      "checks": [
+        {
+          "kind": "html",
+          "configured": true,
+          "url": "https://search.cctv.com/search.php?qtext=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6&type=web&sort=relevance&datepid=1",
+          "note": "",
+          "status_code": 200,
+          "final_url": "https://search.cctv.com/search.php?qtext=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6&type=web&sort=relevance&datepid=1",
+          "content_type": "text/html; charset=UTF-8",
+          "content_length": 50342,
+          "raw_anchor_count": 41,
+          "article_link_count": 8,
+          "sample_links": [
+            {
+              "source_id": "cctv_sports",
+              "title": "“ 机车 之岛”的惊叹与期盼 台湾社会热议“ 张雪 机车 ”夺冠",
+              "url": "https://news.cctv.com/2026/04/06/ARTIGDKLnZllGKqHNCYIrjjt260406.shtml"
+            },
+            {
+              "source_id": "cctv_sports",
+              "title": "从相信到夺冠，见证中国摩托车成长——专访“ 张雪 机车 ”车手德比斯",
+              "url": "https://people.cctv.com/2026/06/03/ARTItdI5X2KiVichhoUwNRjq260603.shtml"
+            },
+            {
+              "source_id": "cctv_sports",
+              "title": "WSBK西班牙站： 张雪 机车 第二回合获第八",
+              "url": "https://sports.cctv.com/2026/06/01/ARTIlMjOBuFVJdFeWF86yhzA260601.shtml"
+            },
+            {
+              "source_id": "cctv_sports",
+              "title": "WSBK捷克站：“ 张雪 机车 ”位列超级杆位赛第三名",
+              "url": "https://sports.cctv.com/2026/05/16/ARTIFwiFZS7wrCGevM33eQZH260516.shtml"
+            },
+            {
+              "source_id": "cctv_sports",
+              "title": "“ 张雪 机车 ”西班牙阿拉贡站首回合获第8名",
+              "url": "https://sports.cctv.com/2026/05/30/ARTIVWxhbzXzTD8Psozctt7C260530.shtml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source_id": "sina_sports",
+      "name": "新浪体育",
+      "categories": [
+        "sports"
+      ],
+      "native_search_enabled": false,
+      "classification": "hold_unparsed_or_js_shell",
+      "checks": [
+        {
+          "kind": "html",
+          "configured": false,
+          "url": "https://search.sina.com.cn/?q=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6&c=sports",
+          "note": "搜索页可访问，但目前返回前端壳，通用 HTML 链接抽取拿不到文章。",
+          "status_code": 200,
+          "final_url": "https://search.sina.com.cn/search?q=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6&tp=mix",
+          "content_type": "text/html; charset=utf-8",
+          "content_length": 435,
+          "raw_anchor_count": 0,
+          "article_link_count": 0,
+          "sample_links": []
+        }
+      ]
+    },
+    {
+      "source_id": "qq_sports",
+      "name": "腾讯体育",
+      "categories": [
+        "sports"
+      ],
+      "native_search_enabled": false,
+      "classification": "hold_unparsed_or_js_shell",
+      "checks": [
+        {
+          "kind": "html",
+          "configured": false,
+          "url": "https://news.qq.com/search?query=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "note": "搜索页可访问，但目前返回前端壳，需后续确认其数据接口。",
+          "status_code": 200,
+          "final_url": "https://news.qq.com/search?query=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "content_type": "text/html; charset=utf-8",
+          "content_length": 7117,
+          "raw_anchor_count": 0,
+          "article_link_count": 0,
+          "sample_links": []
+        }
+      ]
+    },
+    {
+      "source_id": "sohu_sports",
+      "name": "搜狐体育",
+      "categories": [
+        "sports"
+      ],
+      "native_search_enabled": false,
+      "classification": "hold_unparsed_or_js_shell",
+      "checks": [
+        {
+          "kind": "html",
+          "configured": false,
+          "url": "https://search.sohu.com/?keyword=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "note": "搜索页可访问，但目前返回前端壳，需后续确认其数据接口。",
+          "status_code": 200,
+          "final_url": "https://search.sohu.com/?keyword=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "content_type": "text/html",
+          "content_length": 1119,
+          "raw_anchor_count": 0,
+          "article_link_count": 0,
+          "sample_links": []
+        }
+      ]
+    },
+    {
+      "source_id": "hupu",
+      "name": "虎扑",
+      "categories": [
+        "sports"
+      ],
+      "native_search_enabled": true,
+      "classification": "native_html_ready",
+      "checks": [
+        {
+          "kind": "html",
+          "configured": true,
+          "url": "https://bbs.hupu.com/search?q=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "note": "",
+          "status_code": 200,
+          "final_url": "https://bbs.hupu.com/search?q=%E5%BC%A0%E9%9B%AA%E6%9C%BA%E8%BD%A6",
+          "content_type": "text/html; charset=utf-8",
+          "content_length": 122342,
+          "raw_anchor_count": 67,
+          "article_link_count": 10,
+          "sample_links": [
+            {
+              "source_id": "hupu",
+              "title": "张雪 机车 连续两天的比赛都拿第八，说白了，就是一个官方规则可以限制性能的小比赛，不知道为什么营销成各种弯道超车。",
+              "url": "https://bbs.hupu.com/639652293.html"
+            },
+            {
+              "source_id": "hupu",
+              "title": "张雪 机车 也顶上来了！",
+              "url": "https://bbs.hupu.com/639670008.html"
+            },
+            {
+              "source_id": "hupu",
+              "title": "[流言板]美国博主承认被 张雪 机车 打脸",
+              "url": "https://bbs.hupu.com/639734462.html"
+            },
+            {
+              "source_id": "hupu",
+              "title": "[流言板] 张雪 机车 祝高考生收获理想结果",
+              "url": "https://bbs.hupu.com/639734316.html"
+            },
+            {
+              "source_id": "hupu",
+              "title": "安踏官宣成为 张雪 机车 全球战略合作品牌，这波联名什么水平？",
+              "url": "https://bbs.hupu.com/639679561.html"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "topic": "俄乌战争 农作物",
+  "strategy": {
+    "vertical": "围绕原主题抽取更具体主体、影响链、时间线和关键词继续搜索。",
+    "horizontal": "从召回结果中抽取相邻事件、关联主体、上下游影响和跨领域关键词扩展搜索。",
+    "llm_planner": "预留：接入 LLM 后由模型从证据中生成下一轮事件、主体、搜索词和停止条件。"
+  },
+  "seed_results": [
+    {
+      "article_id": "art_9404fd412c4bba36",
+      "source_id": "people_politics",
+      "title": "国际粮食安全议题引发多方关注",
+      "url": "https://example.local/people_politics/0",
+      "summary": "多方围绕粮食出口、航运安全和农作物价格展开讨论，国际组织提示部分进口国库存压力上升。",
+      "category": "politics",
+      "published_at": "2026-06-09T09:04:47.737906Z",
+      "score": 1.0,
+      "origin": "local"
+    }
+  ],
+  "expanded_queries": [
+    {
+      "query": "俄乌战争 农作物 国际粮食安全议题引发多方关注",
+      "direction": "vertical",
+      "rationale": "围绕 国际粮食安全议题引发多方关注 深挖原主题细节"
+    },
+    {
+      "query": "俄乌战争 农作物 多方围绕粮食出口",
+      "direction": "vertical",
+      "rationale": "围绕 多方围绕粮食出口 深挖原主题细节"
+    },
+    {
+      "query": "航运安全和农作物价格展开讨论 影响 俄乌战争 农作物",
+      "direction": "horizontal",
+      "rationale": "检查 航运安全和农作物价格展开讨论 与原主题的关联事件"
+    },
+    {
+      "query": "国际组织提示部分进口国库存压力上升 影响 俄乌战争 农作物",
+      "direction": "horizontal",
+      "rationale": "检查 国际组织提示部分进口国库存压力上升 与原主题的关联事件"
+    }
+  ],
+  "evidence": [
+    {
+      "query": "俄乌战争 农作物 国际粮食安全议题引发多方关注",
+      "direction": "vertical",
+      "rationale": "围绕 国际粮食安全议题引发多方关注 深挖原主题细节",
+      "results": [
+        {
+          "article_id": "art_9404fd412c4bba36",
+          "source_id": "people_politics",
+          "title": "国际粮食安全议题引发多方关注",
+          "url": "https://example.local/people_politics/0",
+          "summary": "多方围绕粮食出口、航运安全和农作物价格展开讨论，国际组织提示部分进口国库存压力上升。",
+          "category": "politics",
+          "published_at": "2026-06-09T09:04:47.737906Z",
+          "score": 1.0,
+          "origin": "local"
+        }
+      ]
+    },
+    {
+      "query": "俄乌战争 农作物 多方围绕粮食出口",
+      "direction": "vertical",
+      "rationale": "围绕 多方围绕粮食出口 深挖原主题细节",
+      "results": [
+        {
+          "article_id": "art_9404fd412c4bba36",
+          "source_id": "people_politics",
+          "title": "国际粮食安全议题引发多方关注",
+          "url": "https://example.local/people_politics/0",
+          "summary": "多方围绕粮食出口、航运安全和农作物价格展开讨论，国际组织提示部分进口国库存压力上升。",
+          "category": "politics",
+          "published_at": "2026-06-09T09:04:47.737906Z",
+          "score": 1.0,
+          "origin": "local"
+        }
+      ]
+    }
+  ],
+  "next_actions": [
+    "把高置信扩展词沉淀为用户专题任务的 watch_keywords。",
+    "把重复出现的主体和时间点写入专题时间线。",
+    "当新证据不足或查询开始重复时停止扩展。"
+  ]
+}

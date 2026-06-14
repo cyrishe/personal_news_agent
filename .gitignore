@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+._*
 *.py[codz]
 *$py.class
 
@@ -49,6 +50,8 @@ coverage.xml
 *.py.cover
 .hypothesis/
 .pytest_cache/
+.playwright-cli/
+.playwright-mcp/
 cover/
 
 # Translations
@@ -60,6 +63,14 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+personal_news.db
+personal_news.db-journal
+runtime/
+.devserver.pid
+.devserver.log
+source_smoke_results.json
+crawl_results.json
+.env.ext
 
 # Flask stuff:
 instance/

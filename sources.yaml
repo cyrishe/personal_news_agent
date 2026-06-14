@@ -1,0 +1,609 @@
+sources:
+  - source_id: people_politics
+    name: 人民网时政
+    root_domain: politics.people.com.cn
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [politics]
+    tags: [politics, domestic, official, state_media]
+    crawl_interval_minutes: 45
+    sections:
+      - key: politics
+        name: 人民网时政
+        category: politics
+        url: https://politics.people.com.cn/index1.html
+        crawl_strategy: list_page
+        tags: [domestic, policy]
+    search:
+      strategy: external_first
+      domain_filters: [politics.people.com.cn, people.com.cn]
+      native_search_enabled: true
+      api_requests:
+        - method: POST
+          url: http://search.people.cn/search-platform/front/search
+          json: {key: "{query}", page: 1, limit: 10}
+          results_path: data.records
+          title_field: title
+          url_field: url
+          snippet_field: content
+    rate_limit: {min_interval_seconds: 5, max_pages_per_run: 30}
+  - source_id: cctv_news_china
+    name: 央视新闻国内
+    root_domain: news.cctv.com
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [politics]
+    tags: [politics, domestic, official, state_media]
+    crawl_interval_minutes: 45
+    sections:
+      - key: china
+        name: 央视新闻国内
+        category: politics
+        url: https://news.cctv.com/china/
+        crawl_strategy: list_page
+        tags: [domestic]
+    search:
+      strategy: external_first
+      domain_filters: [news.cctv.com, cctv.com]
+    rate_limit: {min_interval_seconds: 5, max_pages_per_run: 30}
+  - source_id: cctv_news_world
+    name: 央视新闻国际
+    root_domain: news.cctv.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [politics]
+    tags: [politics, international, official, state_media]
+    crawl_interval_minutes: 45
+    sections:
+      - key: world
+        name: 央视新闻国际
+        category: politics
+        url: https://news.cctv.com/world/
+        crawl_strategy: list_page
+        tags: [international]
+    search:
+      strategy: external_first
+      domain_filters: [news.cctv.com, cctv.com]
+    rate_limit: {min_interval_seconds: 5, max_pages_per_run: 30}
+  - source_id: sina_finance
+    name: 新浪财经
+    root_domain: finance.sina.com.cn
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [economy]
+    sections:
+      - key: economy
+        name: 新浪财经
+        category: economy
+        url: https://finance.sina.com.cn/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [finance.sina.com.cn, sina.com.cn]
+    rate_limit: {min_interval_seconds: 5, max_pages_per_run: 30}
+  - source_id: ifeng_finance
+    name: 凤凰财经
+    root_domain: finance.ifeng.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [economy]
+    sections:
+      - key: economy
+        name: 凤凰财经
+        category: economy
+        url: https://finance.ifeng.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [finance.ifeng.com, ifeng.com]
+  - source_id: sohu_business
+    name: 搜狐财经商业
+    root_domain: business.sohu.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [economy]
+    sections:
+      - key: economy
+        name: 搜狐财经商业
+        category: economy
+        url: https://business.sohu.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [business.sohu.com, sohu.com]
+  - source_id: yicai
+    name: 第一财经
+    root_domain: yicai.com
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [economy]
+    sections:
+      - key: economy
+        name: 第一财经
+        category: economy
+        url: https://www.yicai.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [yicai.com, www.yicai.com]
+  - source_id: jiemian
+    name: 界面新闻
+    root_domain: jiemian.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [economy]
+    sections:
+      - key: economy
+        name: 界面商业
+        category: economy
+        url: https://www.jiemian.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [jiemian.com, www.jiemian.com]
+  - source_id: ithome
+    name: IT之家
+    root_domain: ithome.com
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [tech]
+    sections:
+      - key: tech
+        name: IT之家
+        category: tech
+        url: https://www.ithome.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [ithome.com, it.ithome.com, mobile.ithome.com]
+  - source_id: tmtpost
+    name: 钛媒体
+    root_domain: tmtpost.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [tech]
+    sections:
+      - key: tech
+        name: 钛媒体科技
+        category: tech
+        url: https://www.tmtpost.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [tmtpost.com, www.tmtpost.com]
+  - source_id: huxiu
+    name: 虎嗅
+    root_domain: huxiu.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: false
+    search_enabled: true
+    categories: [tech]
+    sections:
+      - key: tech
+        name: 虎嗅科技
+        category: tech
+        url: https://www.huxiu.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [huxiu.com, www.huxiu.com]
+  - source_id: sina_tech
+    name: 新浪科技
+    root_domain: tech.sina.com.cn
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [tech]
+    sections:
+      - key: tech
+        name: 新浪科技
+        category: tech
+        url: https://tech.sina.com.cn/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [tech.sina.com.cn, sina.com.cn]
+  - source_id: sina_auto
+    name: 新浪汽车
+    root_domain: auto.sina.com.cn
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [auto]
+    sections:
+      - key: auto
+        name: 新浪汽车
+        category: auto
+        url: https://auto.sina.com.cn/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [auto.sina.com.cn, sina.com.cn]
+  - source_id: sohu_auto
+    name: 搜狐汽车
+    root_domain: auto.sohu.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [auto]
+    sections:
+      - key: auto
+        name: 搜狐汽车
+        category: auto
+        url: https://auto.sohu.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [auto.sohu.com, sohu.com]
+  - source_id: ifeng_auto
+    name: 凤凰汽车
+    root_domain: auto.ifeng.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: false
+    search_enabled: true
+    categories: [auto]
+    sections:
+      - key: auto
+        name: 凤凰汽车
+        category: auto
+        url: https://auto.ifeng.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [auto.ifeng.com, ifeng.com]
+  - source_id: autohome
+    name: 汽车之家
+    root_domain: autohome.com.cn
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [auto]
+    sections:
+      - key: auto
+        name: 汽车之家新闻
+        category: auto
+        url: https://www.autohome.com.cn/news/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [autohome.com.cn, www.autohome.com.cn]
+  - source_id: gamersky
+    name: 游民星空
+    root_domain: gamersky.com
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [game]
+    sections:
+      - key: game
+        name: 游民星空游戏
+        category: game
+        url: https://www.gamersky.com/news/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [gamersky.com, www.gamersky.com, ol.gamersky.com, shouyou.gamersky.com]
+  - source_id: 3dm
+    name: 3DM
+    root_domain: 3dmgame.com
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [game]
+    sections:
+      - key: game
+        name: 3DM游戏
+        category: game
+        url: https://www.3dmgame.com/news/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [3dmgame.com, www.3dmgame.com, shouyou.3dmgame.com, ol.3dmgame.com]
+  - source_id: "17173"
+    name: 17173
+    root_domain: 17173.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [game]
+    sections:
+      - key: game
+        name: 17173游戏
+        category: game
+        url: https://news.17173.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [17173.com, news.17173.com]
+  - source_id: ali213
+    name: 游侠网
+    root_domain: ali213.net
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [game]
+    sections:
+      - key: game
+        name: 游侠网游戏
+        category: game
+        url: https://www.ali213.net/news/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [ali213.net, www.ali213.net]
+  - source_id: gamersky_acg
+    name: 游民星空ACG
+    root_domain: acg.gamersky.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [anime]
+    sections:
+      - key: anime
+        name: 游民星空动漫
+        category: anime
+        url: https://acg.gamersky.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [acg.gamersky.com, gamersky.com]
+  - source_id: dmzj
+    name: 动漫之家
+    root_domain: dmzj.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: false
+    search_enabled: true
+    categories: [anime]
+    sections:
+      - key: anime
+        name: 动漫之家资讯
+        category: anime
+        url: https://www.dmzj.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [dmzj.com, www.dmzj.com]
+  - source_id: bilibili_search
+    name: B站公开搜索
+    root_domain: bilibili.com
+    source_type: search_only
+    priority: 5
+    crawl_enabled: false
+    search_enabled: true
+    categories: [anime]
+    sections:
+      - key: anime
+        name: B站番剧入口
+        category: anime
+        url: https://search.bilibili.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [bilibili.com, search.bilibili.com]
+  - source_id: tieba_acg
+    name: 百度贴吧动漫
+    root_domain: tieba.baidu.com
+    source_type: search_only
+    priority: 5
+    crawl_enabled: false
+    search_enabled: true
+    categories: [anime]
+    sections:
+      - key: anime
+        name: 贴吧动漫入口
+        category: anime
+        url: https://tieba.baidu.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [tieba.baidu.com]
+  - source_id: sina_ent
+    name: 新浪娱乐
+    root_domain: ent.sina.com.cn
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [entertainment]
+    sections:
+      - key: entertainment
+        name: 新浪娱乐
+        category: entertainment
+        url: https://ent.sina.com.cn/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [ent.sina.com.cn, sina.com.cn]
+  - source_id: sohu_yule
+    name: 搜狐娱乐
+    root_domain: yule.sohu.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [entertainment]
+    sections:
+      - key: entertainment
+        name: 搜狐娱乐
+        category: entertainment
+        url: https://yule.sohu.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [yule.sohu.com, sohu.com]
+  - source_id: ifeng_ent
+    name: 凤凰娱乐
+    root_domain: ent.ifeng.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [entertainment]
+    sections:
+      - key: entertainment
+        name: 凤凰娱乐
+        category: entertainment
+        url: https://ent.ifeng.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [ent.ifeng.com, ifeng.com]
+  - source_id: douban_movie
+    name: 豆瓣电影
+    root_domain: movie.douban.com
+    source_type: search_only
+    priority: 5
+    crawl_enabled: false
+    search_enabled: true
+    categories: [entertainment]
+    sections:
+      - key: entertainment
+        name: 豆瓣电影入口
+        category: entertainment
+        url: https://movie.douban.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [movie.douban.com, douban.com]
+  - source_id: cctv_sports
+    name: 央视体育
+    root_domain: sports.cctv.com
+    source_type: portal
+    priority: 1
+    crawl_enabled: true
+    search_enabled: true
+    categories: [sports]
+    tags: [sports, official, state_media]
+    crawl_interval_minutes: 20
+    sections:
+      - key: sports
+        name: 央视体育
+        category: sports
+        url: https://sports.cctv.com/
+        crawl_strategy: list_page
+        tags: [official]
+    search:
+      strategy: native_first
+      native_search_enabled: true
+      candidate_templates:
+        - https://search.cctv.com/search.php?qtext={query_encoded}&type=web&sort=relevance&datepid=1
+      domain_filters: [sports.cctv.com, news.cctv.com, people.cctv.com]
+    rate_limit: {min_interval_seconds: 5, max_pages_per_run: 30}
+  - source_id: sina_sports
+    name: 新浪体育
+    root_domain: sports.sina.com.cn
+    source_type: portal
+    priority: 2
+    crawl_enabled: true
+    search_enabled: true
+    categories: [sports]
+    sections:
+      - key: sports
+        name: 新浪体育
+        category: sports
+        url: https://sports.sina.com.cn/
+        crawl_strategy: list_page
+    search:
+      strategy: native_first
+      native_search_enabled: true
+      domain_filters: [sports.sina.com.cn, sina.com.cn]
+      api_requests:
+        - method: GET
+          url: https://search.sina.com.cn/api/search?q={query_encoded}&tp=news
+          results_path: data.list
+          title_field: title
+          url_field: url
+          snippet_field: intro
+  - source_id: qq_sports
+    name: 腾讯体育
+    root_domain: sports.qq.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: false
+    search_enabled: true
+    categories: [sports]
+    sections:
+      - key: sports
+        name: 腾讯体育
+        category: sports
+        url: https://sports.qq.com/
+        crawl_strategy: search_only
+        crawl_enabled: false
+    search:
+      strategy: external_first
+      domain_filters: [sports.qq.com, qq.com]
+  - source_id: sohu_sports
+    name: 搜狐体育
+    root_domain: sports.sohu.com
+    source_type: portal
+    priority: 3
+    crawl_enabled: true
+    search_enabled: true
+    categories: [sports]
+    sections:
+      - key: sports
+        name: 搜狐体育
+        category: sports
+        url: https://sports.sohu.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [sports.sohu.com, sohu.com]
+  - source_id: hupu
+    name: 虎扑
+    root_domain: hupu.com
+    source_type: portal
+    priority: 4
+    crawl_enabled: true
+    search_enabled: true
+    categories: [sports]
+    sections:
+      - key: sports
+        name: 虎扑体育
+        category: sports
+        url: https://www.hupu.com/
+        crawl_strategy: list_page
+    search:
+      strategy: external_first
+      domain_filters: [hupu.com, bbs.hupu.com]
+      native_search_enabled: true
+      candidate_templates:
+        - https://bbs.hupu.com/search?q={query_encoded}

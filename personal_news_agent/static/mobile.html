@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个人资讯助手移动端</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="mobile-shell">
+    <header class="mobile-top">
+      <div>
+        <h1>资讯助手</h1>
+        <p><span data-user-name></span></p>
+      </div>
+      <a href="/web">Web</a>
+    </header>
+    <main class="mobile-layout">
+      <section class="mobile-card mobile-agent-card">
+        <div class="mobile-card-head">
+          <h2>对话</h2>
+          <button type="button" class="secondary-button" data-command="/search 张雪机车 --cat sports">源搜索</button>
+        </div>
+        <div id="messages" class="messages mobile-messages chat-stream">
+          <article class="chat-turn chat-assistant"><div class="chat-bubble">今天想看什么？</div></article>
+        </div>
+        <form id="chatForm" class="mobile-chat">
+          <input id="message" placeholder="问新闻、追专题，或输入 /search 张雪机车" />
+          <button>发</button>
+        </form>
+      </section>
+
+      <nav class="category-tabs" id="mobileTabs">
+        <button data-category="" class="active">全部</button>
+        <button data-category="politics">时政</button>
+        <button data-category="tech">科技</button>
+        <button data-category="game">游戏</button>
+        <button data-category="auto">汽车</button>
+        <button data-category="sports">体育</button>
+      </nav>
+
+      <section class="mobile-card mobile-push-card">
+        <div class="mobile-card-head">
+          <h2>触达</h2>
+          <button id="enableBrowserPushMobile" type="button" class="secondary-button">提醒</button>
+        </div>
+        <div class="notification-list" data-notifications></div>
+        <p class="status" data-notification-status></p>
+      </section>
+
+      <section class="mobile-card mobile-feed-card">
+        <h2>推荐</h2>
+        <div id="feed" class="list"></div>
+      </section>
+      <section class="mobile-card mobile-events-card">
+        <h2>热点</h2>
+        <div id="events" class="list compact"></div>
+      </section>
+
+      <section class="mobile-card auth-card mobile-account-card">
+        <details open>
+          <summary>账号</summary>
+          <section class="auth-panel active" data-auth-panel="login">
+            <h2>登录</h2>
+            <form id="loginForm" class="form-grid">
+              <input name="username" autocomplete="username" placeholder="用户名" required />
+              <input name="password" autocomplete="current-password" type="password" placeholder="密码" required />
+              <button>登录</button>
+            </form>
+            <p class="auth-switch">还没有账号？<button type="button" class="auth-link" data-auth-mode-target="register">注册</button></p>
+          </section>
+          <section class="auth-panel" data-auth-panel="register" hidden>
+            <h2>注册</h2>
+            <form id="registerForm" class="form-grid">
+              <input name="username" autocomplete="username" placeholder="用户名" required />
+              <input name="password" autocomplete="new-password" type="password" placeholder="密码，至少6位" required />
+              <input name="confirm_password" autocomplete="new-password" type="password" placeholder="确认密码" required />
+              <input name="real_name" autocomplete="name" placeholder="真实姓名" required />
+              <input name="mobile" autocomplete="tel" placeholder="手机号实名认证，请用真实姓名对应的手机号" required />
+              <button>注册</button>
+            </form>
+            <p class="auth-switch">已有账号？<button type="button" class="auth-link" data-auth-mode-target="login">登录</button></p>
+          </section>
+          <form id="onboardingForm" class="form-grid" hidden>
+            <input name="display_name" placeholder="常用称呼，可选" />
+            <textarea name="self_description" placeholder="自我描述"></textarea>
+            <input name="age" type="number" min="12" max="100" placeholder="年龄" />
+            <select name="gender"><option>不透露</option><option>男</option><option>女</option><option>其他</option></select>
+            <select name="zodiac">
+              <option>不透露</option><option>白羊座</option><option>金牛座</option><option>双子座</option><option>巨蟹座</option>
+              <option>狮子座</option><option>处女座</option><option>天秤座</option><option>天蝎座</option>
+              <option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>双鱼座</option>
+            </select>
+            <div class="choice-grid" data-category-options></div>
+            <input name="watch_keywords" placeholder="关注词" />
+            <input name="negative_keywords" placeholder="不想看" />
+            <select name="model_key"></select>
+            <select name="output_style"></select>
+            <button>保存配置</button>
+          </form>
+          <p id="registerStatus" class="status" aria-live="polite"></p>
+        </details>
+        <button id="editProfileMobile" class="secondary-button mobile-profile-button">编辑个人配置</button>
+      </section>
+    </main>
+    <script src="/static/shared.js"></script>
+    <script src="/static/mobile.js"></script>
+  </body>
+</html>

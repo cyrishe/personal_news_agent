@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个人资讯助手 Web</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="web-shell console-shell">
+    <header class="app-topbar console-topbar">
+      <div class="brand-block">
+        <h1>个人资讯助手</h1>
+        <p><span data-user-name></span></p>
+      </div>
+      <div class="system-strip" aria-live="polite">
+        <span data-es-status>ES --</span>
+        <span data-mysql-status>MySQL --</span>
+        <span data-source-count>源 --</span>
+      </div>
+      <nav class="top-actions">
+        <button id="openConfig" class="secondary-button">个人配置</button>
+        <button id="refresh">刷新</button>
+        <a href="/auth">登录/注册</a>
+        <a href="/mobile">移动端</a>
+      </nav>
+    </header>
+
+    <main class="news-console">
+      <aside class="console-rail">
+        <section class="rail-panel profile-panel">
+          <div class="panel-head compact-head">
+            <h2>快捷命令</h2>
+          </div>
+          <div class="capability-stack">
+            <button data-ask="搜集我关心的时政和体育新闻，按重要性给我今天的摘要">今日摘要</button>
+            <button data-ask="帮我定向搜索张雪机车最新进展，并列出可信来源">定向搜索</button>
+            <button data-ask="围绕俄乌战争对农作物的影响创建一个长期专题">定义专题</button>
+            <button data-ask="把当前专题扩展成事件线和关系网">专题视图</button>
+          </div>
+        </section>
+
+        <section class="rail-panel topic-nav">
+          <div class="panel-head compact-head">
+            <h2>专题</h2>
+            <button class="secondary-button mini-button" data-ask="创建一个新的长期专题任务">新增</button>
+          </div>
+          <button class="topic-card active" data-topic-title="张雪机车" data-category-scope="sports">张雪机车</button>
+          <button class="topic-card" data-topic-title="NBA 总决赛" data-category-scope="sports">NBA 总决赛</button>
+          <button class="topic-card" data-topic-title="俄乌战争对农作物的影响" data-category-scope="politics,economy">俄乌战争 × 农作物</button>
+          <button class="topic-card" data-topic-title="AI 终端设备" data-category-scope="tech">AI 终端设备</button>
+        </section>
+
+        <section class="rail-panel task-panel">
+          <h2>定时跟踪</h2>
+          <form id="taskForm" class="task-mini-form">
+            <input name="topic" value="张雪机车" placeholder="专题" />
+            <select name="category">
+              <option value="sports">体育</option>
+              <option value="politics">时政</option>
+              <option value="economy">经济</option>
+              <option value="tech">科技</option>
+              <option value="auto">汽车</option>
+            </select>
+            <select name="task_type">
+              <option value="topic_tracking">专题跟踪</option>
+              <option value="daily_digest">每日摘要</option>
+              <option value="weekly_digest">每周摘要</option>
+            </select>
+            <input name="schedule" value="*/20 * * * *" placeholder="*/20 * * * *" list="schedulePresets" />
+            <datalist id="schedulePresets">
+              <option value="*/20 * * * *">每 20 分钟</option>
+              <option value="0 * * * *">每小时</option>
+              <option value="0 9 * * *">每天 09:00</option>
+              <option value="0 21 * * *">每天 21:00</option>
+              <option value="0 9 * * 1">每周一 09:00</option>
+            </datalist>
+            <select name="delivery_channel">
+              <option value="in_app">应用内</option>
+              <option value="browser">浏览器提醒</option>
+            </select>
+            <button>保存任务</button>
+          </form>
+          <p class="status" data-task-status></p>
+          <div class="task-list" data-task-list></div>
+        </section>
+
+        <section class="rail-panel source-panel">
+          <h2>源管理</h2>
+          <div class="metric-grid">
+            <article><strong data-metric-sources>--</strong><span>总源</span></article>
+            <article><strong data-metric-crawlable>--</strong><span>抓取</span></article>
+            <article><strong data-metric-searchable>--</strong><span>搜索</span></article>
+            <article><strong data-metric-interval>10-20</strong><span>分钟</span></article>
+          </div>
+          <div class="source-tags" data-source-tags></div>
+        </section>
+      </aside>
+
+      <section class="console-main">
+        <section class="conversation-panel main-dialog">
+          <div class="dialog-header">
+            <span class="assistant-label">Agent</span>
+            <h2>对话工作台</h2>
+            <p data-dialog-context>张雪机车 · 证据与专题视图同步中。</p>
+          </div>
+          <div class="prompt-suggestions">
+            <button data-ask="张雪机车今天有哪些值得关注的新变化？">今日变化</button>
+            <button data-action="deep-dive-chat">深度挖掘</button>
+            <button data-action="make-topic">生成专题</button>
+            <button data-action="make-task">定时跟踪</button>
+            <button data-action="make-report">生成报告</button>
+          </div>
+          <div class="context-dock">
+            <span data-current-topic-chip>张雪机车</span>
+            <span data-current-category-chip>sports</span>
+            <span data-current-view-chip>事件线</span>
+          </div>
+          <div class="messages hero-messages chat-stream" id="messages">
+            <article class="chat-turn chat-assistant"><div class="chat-bubble">当前专题已就绪。</div></article>
+          </div>
+          <form id="chatForm" class="command-bar dialog-command">
+            <input id="message" placeholder="问新闻、追专题，或输入 /search 张雪机车" />
+            <button>发送</button>
+          </form>
+        </section>
+
+        <section class="command-panel">
+          <form id="topicForm" class="topic-command">
+            <input id="topicInput" value="张雪机车" placeholder="输入专题或定向搜索词" />
+            <select id="categoryScope">
+              <option value="sports">体育</option>
+              <option value="politics,economy">时政 + 经济</option>
+              <option value="tech">科技</option>
+              <option value="auto">汽车</option>
+              <option value="">全部</option>
+            </select>
+            <button>更新</button>
+          </form>
+          <div class="command-actions">
+            <button id="nativeIngest" class="secondary-button">源搜索入库</button>
+            <button id="deepDive" class="secondary-button">深度挖掘</button>
+            <button id="createTopicTask" class="secondary-button">保存跟踪</button>
+            <button id="generateReport" class="secondary-button">专题报告</button>
+          </div>
+          <p class="status" data-command-status></p>
+        </section>
+
+        <section class="topic-workbench">
+          <div class="topic-head">
+            <div>
+              <span class="assistant-label">专题更新</span>
+              <h2 data-topic-title>张雪机车</h2>
+              <p data-topic-summary>正在加载专题证据。</p>
+            </div>
+            <div class="topic-metrics">
+              <article><strong data-topic-article-count>--</strong><span>证据</span></article>
+              <article><strong data-topic-event-count>--</strong><span>事件</span></article>
+              <article><strong data-topic-node-count>--</strong><span>节点</span></article>
+            </div>
+          </div>
+          <div class="topic-tabs" role="tablist" aria-label="专题视图">
+            <button class="topic-view-toggle active" data-topic-view="event-line">事件线</button>
+            <button class="topic-view-toggle" data-topic-view="relation-graph">关系网</button>
+          </div>
+          <div class="topic-visual" data-topic-visual></div>
+          <div class="evidence-strip" data-evidence-strip></div>
+        </section>
+      </section>
+
+      <aside class="insight-rail">
+        <section class="rail-panel feed-panel">
+          <div class="panel-head compact-head">
+            <h2>个性化信息流</h2>
+            <select id="feedCategory">
+              <option value="">全部</option>
+              <option value="politics">时政</option>
+              <option value="economy">经济</option>
+              <option value="tech">科技</option>
+              <option value="auto">汽车</option>
+              <option value="sports">体育</option>
+            </select>
+          </div>
+          <div id="feed" class="list feed-list"></div>
+        </section>
+
+        <section class="rail-panel events-panel">
+          <h2>聚合事件</h2>
+          <div id="events" class="list compact"></div>
+        </section>
+
+        <section class="rail-panel crawl-panel">
+          <h2>待抓 URL</h2>
+          <div data-due-urls class="due-url-list"></div>
+        </section>
+
+        <section class="rail-panel deep-dive-panel">
+          <h2>深挖结果</h2>
+          <div data-deep-dive-output class="deep-dive-output">暂无</div>
+        </section>
+
+        <section class="rail-panel push-panel">
+          <div class="panel-head compact-head">
+            <h2>触达</h2>
+            <button id="enableBrowserPush" class="secondary-button mini-button">提醒</button>
+          </div>
+          <div class="notification-list" data-notifications></div>
+          <p class="status" data-notification-status></p>
+        </section>
+      </aside>
+    </main>
+
+    <dialog id="configDialog" class="config-dialog">
+      <form method="dialog" class="dialog-head">
+        <h2>个人配置</h2>
+        <button class="secondary-button">关闭</button>
+      </form>
+      <form id="onboardingForm" class="config-grid">
+        <input name="display_name" placeholder="常用称呼" />
+        <textarea name="self_description" placeholder="自我描述：职业、城市、信息偏好、最近关注的长期目标"></textarea>
+        <div class="split-fields">
+          <input name="age" type="number" min="12" max="100" placeholder="年龄" />
+          <select name="gender">
+            <option>不透露</option>
+            <option>男</option>
+            <option>女</option>
+            <option>其他</option>
+          </select>
+          <select name="zodiac">
+            <option>不透露</option>
+            <option>白羊座</option><option>金牛座</option><option>双子座</option><option>巨蟹座</option>
+            <option>狮子座</option><option>处女座</option><option>天秤座</option><option>天蝎座</option>
+            <option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>双鱼座</option>
+          </select>
+        </div>
+        <div class="choice-grid wide" data-category-options></div>
+        <input name="watch_keywords" placeholder="关注词：时政, NBA, 俄乌战争, 农作物" />
+        <input name="negative_keywords" placeholder="不想看：低质八卦, 重复转载" />
+        <div class="split-fields two">
+          <select name="model_key"></select>
+          <select name="output_style"></select>
+        </div>
+        <button>初始化/保存配置</button>
+      </form>
+      <p id="onboardingStatus" class="status"></p>
+      <pre id="assistantPromptPreview" class="prompt-preview"></pre>
+    </dialog>
+
+    <script src="/static/shared.js"></script>
+    <script src="/static/web.js"></script>
+  </body>
+</html>
