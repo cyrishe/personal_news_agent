@@ -8,7 +8,6 @@ from personal_news_agent.config import Settings
 from personal_news_agent.services.auth import AuthService
 from personal_news_agent.services.chat import NewsChatService
 from personal_news_agent.services.cc_runtime import CCRuntimeOrchestrator
-from personal_news_agent.services.content_moderation import TextModerationPlusService
 from personal_news_agent.services.crawl import CrawlScheduler
 from personal_news_agent.services.deep_dive import DeepDiveService
 from personal_news_agent.services.events import EventDiscoveryService
@@ -70,7 +69,10 @@ def build_services(settings: Settings) -> dict[str, Any]:
         cc_runtime=cc_runtime,
     )
     topic_agent = TopicAgentService(store, tasks, topic_views=topic_views, native_ingestion=native_ingestion)
-    content_moderation = TextModerationPlusService()
+    # Demo-safe mode: keep input moderation out of the request path until the
+    # cloud moderation entitlement is verified. The chat service already
+    # treats a missing moderation service as pass-through.
+    content_moderation = None
     topic_extraction = TopicExtractionService(store)
 
     skill_registry = build_default_registry()
