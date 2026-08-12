@@ -3673,10 +3673,12 @@ pre {
 }
 
 [data-topic-list] {
+  align-content: start;
   display: grid;
-  gap: 8px;
+  gap: 7px;
+  grid-auto-rows: max-content;
   overflow-y: auto;
-  padding-right: 2px;
+  padding-right: 4px;
 }
 
 .topic-card {
@@ -3697,15 +3699,16 @@ pre {
 }
 
 .topic-card span {
-  display: block;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.35;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .topic-card small {
@@ -3713,6 +3716,19 @@ pre {
   font-size: 11px;
   font-weight: 500;
   line-height: 1.25;
+}
+
+.topic-card em {
+  color: #91a8bc;
+  display: block;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.35;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topic-card.user-topic:nth-child(2n):not(.active),
@@ -3751,31 +3767,6 @@ pre {
 .topic-card.recommended-topic:not(.active) {
   background: #ecfeff;
   border-color: #a5f3fc;
-}
-
-.rail-tooltip {
-  background: #4b5563;
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 650;
-  left: 0;
-  line-height: 1.35;
-  max-width: min(360px, calc(100vw - 32px));
-  opacity: 0;
-  padding: 9px 12px;
-  pointer-events: none;
-  position: fixed;
-  top: 0;
-  transform: translate(-9999px, -9999px);
-  transition: opacity 0.12s ease;
-  white-space: normal;
-  z-index: 80;
-}
-
-.rail-tooltip.visible {
-  opacity: 1;
 }
 
 .task-mini-form {
@@ -6581,7 +6572,7 @@ body.console-shell {
 .console-shell .news-console {
   box-sizing: border-box;
   gap: 18px;
-  grid-template-columns: 232px minmax(0, 1fr) 304px;
+  grid-template-columns: 270px minmax(0, 1fr) 304px;
   margin: 0 auto;
   max-width: 1920px;
   width: 100%;
@@ -6603,6 +6594,42 @@ body.console-shell {
 .console-shell .console-rail .rail-panel {
   background: rgba(10, 31, 49, 0.96);
   border-color: rgba(103, 232, 249, 0.25);
+}
+
+/* Compact information-dense topic rail. Cards follow their content instead
+   of stretching to fill the full panel height. */
+.console-shell .topic-nav {
+  gap: 10px;
+}
+
+.console-shell [data-topic-list] {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.console-shell .topic-card {
+  gap: 4px;
+  min-height: 0;
+  padding: 10px 12px 9px 14px;
+}
+
+.console-shell .topic-card span {
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.console-shell .topic-card small {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.console-shell .topic-card em {
+  color: #829db4;
+  font-size: 10.5px;
+}
+
+.console-shell .topic-card.active em {
+  color: #c7efff;
 }
 
 .console-shell .topic-card.recommended-topic:not(.active) {
@@ -6793,7 +6820,7 @@ body.console-shell {
 
 @media (max-width: 1380px) {
   .console-shell .news-console {
-    grid-template-columns: 224px minmax(0, 1fr);
+    grid-template-columns: 248px minmax(0, 1fr);
   }
 
   .console-shell .insight-rail {

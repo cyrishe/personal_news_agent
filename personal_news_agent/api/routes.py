@@ -43,7 +43,7 @@ from personal_news_agent.services.report_export import export_report
 from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL
 
 
-FRONTEND_REVISION = "20260811-topic-pulse-6"
+FRONTEND_REVISION = "20260812-topic-rail-1"
 NO_CACHE_PAGE_HEADERS = {
     "Cache-Control": "no-store, max-age=0",
     "X-PNA-Frontend-Revision": FRONTEND_REVISION,

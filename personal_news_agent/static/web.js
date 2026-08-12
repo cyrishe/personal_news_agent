@@ -156,7 +156,6 @@ bindAskButtons();
 bindSlashCommandMenu();
 bindNotificationReads();
 bindTaskActions();
-bindRailTooltips();
 window.handleAssistantInput = handleAssistantInput;
 window.applyChatConversationContext = applyChatConversationContext;
 window.handleChatResponseSideEffects = handleWebChatResponseSideEffects;
@@ -599,60 +598,6 @@ function renderTopicList(target, items) {
   bindTopicCards();
 }
 
-function bindRailTooltips() {
-  let tooltip = null;
-  const ensureTooltip = () => {
-    if (tooltip) return tooltip;
-    tooltip = document.createElement("div");
-    tooltip.className = "rail-tooltip";
-    document.body.appendChild(tooltip);
-    return tooltip;
-  };
-
-  const tooltipText = (node) => (
-    node?.dataset.tooltip
-    || node?.dataset.topicTitle
-    || node?.querySelector("span")?.textContent
-    || ""
-  ).trim();
-
-  const shouldShowTooltip = (node) => {
-    const label = node?.querySelector("span");
-    return Boolean(label && (label.scrollWidth > label.clientWidth || tooltipText(node) !== label.textContent.trim()));
-  };
-
-  const positionTooltip = (node) => {
-    const tip = ensureTooltip();
-    const rect = node.getBoundingClientRect();
-    const margin = 10;
-    const width = tip.offsetWidth || 240;
-    const left = Math.min(rect.right + margin, window.innerWidth - width - margin);
-    const top = Math.min(Math.max(rect.top, margin), window.innerHeight - tip.offsetHeight - margin);
-    tip.style.transform = `translate(${Math.max(margin, left)}px, ${Math.max(margin, top)}px)`;
-  };
-
-  document.addEventListener("pointerover", (event) => {
-    const node = event.target.closest?.(".topic-card");
-    if (!node || !shouldShowTooltip(node)) return;
-    const tip = ensureTooltip();
-    tip.textContent = tooltipText(node);
-    positionTooltip(node);
-    tip.classList.add("visible");
-  });
-
-  document.addEventListener("pointermove", (event) => {
-    const node = event.target.closest?.(".topic-card");
-    if (!node || !tooltip?.classList.contains("visible")) return;
-    positionTooltip(node);
-  });
-
-  document.addEventListener("pointerout", (event) => {
-    const node = event.target.closest?.(".topic-card");
-    if (!node || node.contains(event.relatedTarget)) return;
-    tooltip?.classList.remove("visible");
-  });
-}
-
 function startNewTopicConversation() {
   pendingTopicFromNextMessage = true;
   topicLocked = false;
@@ -1059,11 +1004,37 @@ function topicButtonHtml(item) {
     ? (evidenceLevel === "lead"
       ? `${evidenceLabel} · 单源待确认`
       : `${evidenceLabel} ${Number(item.hot_score || 0).toFixed(2)} · ${item.source_count || 1} 源/${item.article_count || 1} 报`)
-    : (scope ? scope.split(",").join(" / ") : (item.topic_type === "system" ? "system" : "all"));
-  const tooltip = item.topic_type === "recommended" && item.recommend_reason
-    ? `${title}｜${item.recommend_reason}`
-    : title;
-  return `<button class="topic-card${kind}${evidenceLevel ? ` topic-${evidenceLevel}` : ""}${active}" type="button" data-topic-title="${escapeAttr(title)}" data-conversation-id="${escapeAttr(itemConversationId)}" data-category-scope="${escapeAttr(scope)}" data-evidence-level="${escapeAttr(evidenceLevel)}" data-tooltip="${escapeAttr(tooltip)}"><span>${escapeHtml(shortTopicTitle(title))}</span><small>${escapeHtml(meta)}</small></button>`;
+    : `${item.topic_type === "system" ? "长期关注" : "个人关注"} · ${topicScopeLabel(scope)}`;
+  const detail = item.topic_type === "recommended"
+    ? compactRecommendationReason(item)
+    : "点击进入专题对话与持续追踪";
+  return `<button class="topic-card${kind}${evidenceLevel ? ` topic-${evidenceLevel}` : ""}${active}" type="button" data-topic-title="${escapeAttr(title)}" data-conversation-id="${escapeAttr(itemConversationId)}" data-category-scope="${escapeAttr(scope)}" data-evidence-level="${escapeAttr(evidenceLevel)}" title="${escapeAttr(title)}"><span>${escapeHtml(shortTopicTitle(title))}</span><small>${escapeHtml(meta)}</small><em>${escapeHtml(detail)}</em></button>`;
+}
+
+function compactRecommendationReason(item) {
+  const reason = String(item.recommend_reason || "")
+    .split("·")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => !/^\d+\s*家门户$/.test(part) && !/^近\s*\d+\s*次更新$/.test(part))
+    .slice(0, 1)
+    .join("");
+  const scope = topicScopeLabel((item.category_scope || []).join(","));
+  const updates = Number(item.recent_update_count || 0);
+  const signal = updates > 1 ? `近 6 小时更新 ${updates} 次` : "等待更多来源交叉确认";
+  return [scope, reason || signal].filter(Boolean).join(" · ");
+}
+
+function topicScopeLabel(scope) {
+  const labels = {
+    politics: "时政", economy: "财经", tech: "科技", digital: "数码", auto: "汽车",
+    game: "游戏", anime: "动漫", entertainment: "娱乐", sports: "体育", military: "军事",
+  };
+  const values = String(scope || "")
+    .split(",")
+    .map((item) => labels[item.trim()] || item.trim())
+    .filter(Boolean);
+  return values.length ? values.join(" / ") : "全部领域";
 }
 
 function shortTopicTitle(title) {
