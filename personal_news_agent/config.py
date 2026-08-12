@@ -73,6 +73,33 @@ class Settings:
     tavily_search_depth: str = os.getenv("TAVILY_SEARCH_DEPTH", "basic")
     tavily_trust_env: bool = os.getenv("TAVILY_TRUST_ENV", "0") == "1"
     http_verify_ssl: bool = os.getenv("PNA_HTTP_VERIFY_SSL", "1") == "1"
+    everyday_api_timeout_seconds: float = float(os.getenv("PNA_EVERYDAY_API_TIMEOUT_SECONDS", "10"))
+    open_meteo_weather_endpoint: str = os.getenv(
+        "PNA_OPEN_METEO_WEATHER_ENDPOINT",
+        "https://api.open-meteo.com/v1/forecast",
+    )
+    open_meteo_geocoding_endpoint: str = os.getenv(
+        "PNA_OPEN_METEO_GEOCODING_ENDPOINT",
+        "https://geocoding-api.open-meteo.com/v1/search",
+    )
+    amap_web_key: str | None = field(default=os.getenv("PNA_AMAP_WEB_KEY") or None, repr=False)
+    amap_web_endpoint: str = os.getenv("PNA_AMAP_WEB_ENDPOINT", "https://restapi.amap.com").rstrip("/")
+    juhe_train_key: str | None = field(
+        default=os.getenv("PNA_JUHE_TRAIN_KEY") or os.getenv("PNA_JUHE_API_KEY") or None,
+        repr=False,
+    )
+    juhe_flight_key: str | None = field(
+        default=os.getenv("PNA_JUHE_FLIGHT_KEY") or os.getenv("PNA_JUHE_API_KEY") or None,
+        repr=False,
+    )
+    juhe_train_endpoint: str = os.getenv(
+        "PNA_JUHE_TRAIN_ENDPOINT",
+        "https://apis.juhe.cn/fapigw/train/query",
+    )
+    juhe_flight_endpoint: str = os.getenv(
+        "PNA_JUHE_FLIGHT_ENDPOINT",
+        "https://v.juhe.cn/flight_dynamic/query",
+    )
     llm_endpoint: str | None = os.getenv("PNA_LLM_ENDPOINT") or os.getenv("LLM_ENDPOINT")
     llm_key: str | None = os.getenv("PNA_LLM_KEY") or os.getenv("LLM_KEY")
     llm_default_model: str = os.getenv("PNA_LLM_DEFAULT_MODEL", "yuanrong-personal-assistant")

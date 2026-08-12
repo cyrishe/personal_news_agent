@@ -5,6 +5,7 @@ from typing import Any
 from claude_code_backend import LocalAgentService
 
 from personal_news_agent.config import Settings
+from personal_news_agent.everyday import EverydayCapabilityService
 from personal_news_agent.services.auth import AuthService
 from personal_news_agent.services.chat import NewsChatService
 from personal_news_agent.services.cc_runtime import CCRuntimeOrchestrator
@@ -44,7 +45,13 @@ def build_services(settings: Settings) -> dict[str, Any]:
     deep_dive = DeepDiveService(search_service)
     local_agent = LocalAgentService()
     llm_client = LLMClient(settings)
-    cc_runtime = CCRuntimeOrchestrator(store, search_service, settings)
+    everyday_capabilities = EverydayCapabilityService.from_settings(settings)
+    cc_runtime = CCRuntimeOrchestrator(
+        store,
+        search_service,
+        settings,
+        everyday_capabilities=everyday_capabilities,
+    )
     reports = ReportGenerationService(store, search_service, local_agent=local_agent)
     factcheck = FactCheckService(
         store,
@@ -101,6 +108,7 @@ def build_services(settings: Settings) -> dict[str, Any]:
         "content_moderation": content_moderation,
         "local_agent": local_agent,
         "cc_runtime": cc_runtime,
+        "everyday_capabilities": everyday_capabilities,
         "skill_registry": skill_registry,
         "crawl": CrawlScheduler(registry, store, url_store, search_index),
     }

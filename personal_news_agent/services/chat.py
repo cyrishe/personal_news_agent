@@ -717,19 +717,12 @@ class NewsChatService:
     ) -> ChatResponse:
         trace: list[dict[str, Any]] = []
         selected_model = get_model_option(model_key, getattr(self.llm_client, "settings", None))
-        general_kind = _general_question_kind(message)
-        kind_labels = {
-            "weather": "天气查询",
-            "route": "路线查询",
-            "knowledge": "通用知识",
-            "conversation": "通用对话",
-        }
         await _add_trace(
             trace,
             {
                 "stage": "理解问题",
                 "status": "completed",
-                "message": f"识别为{kind_labels.get(general_kind, '通用对话')}，不加载业务 Skill，由 Agent 结合外部搜索直接回答。",
+                "message": "识别为通用对话，不加载业务 Skill，由 Agent 自主选择生活服务或外部搜索工具。",
             },
             on_trace,
         )
@@ -749,7 +742,7 @@ class NewsChatService:
                 )
             try:
                 result = await self.cc_runtime.run(
-                    message=_general_runtime_message(message, general_kind),
+                    message=message,
                     query=message,
                     topic=None,
                     category_scope=[],
@@ -762,16 +755,12 @@ class NewsChatService:
                     allow_local_search=False,
                     max_turns=6,
                     builtin_web_search_limit=2,
+                    allow_everyday_tools=allow_web_search,
+                    require_builtin_web_search=False,
                     on_trace=on_trace,
                 )
                 declared = _runtime_declared_link_results(result.answer, "all")
-                answer = _guard_live_general_answer(
-                    result.answer,
-                    message,
-                    general_kind,
-                    allow_web_search=allow_web_search,
-                    declared_sources=declared,
-                )
+                answer = result.answer
                 trace.extend(result.trace)
                 final_trace = {
                     "stage": "生成回答",
@@ -785,7 +774,12 @@ class NewsChatService:
                     markdown=answer,
                     context_relation="general_conversation_cc_runtime",
                     focus_object=FocusObject(type="conversation", text="通用对话"),
-                    required_context_items=["cc_runtime", "conversation_history", "web_search"],
+                    required_context_items=[
+                        "cc_runtime",
+                        "conversation_history",
+                        "everyday_capabilities",
+                        "web_search",
+                    ],
                     recommendations=declared[:8],
                     research_trace=[trace[0], *result.trace, final_trace],
                     evidence=_evidence_payload(self.store, declared),
@@ -1906,7 +1900,7 @@ def _is_general_conversation(message: str, topic: str | None = None) -> bool:
         return False
     if _is_social_smalltalk(text):
         return True
-    if _general_question_kind(text) in {"weather", "route"}:
+    if _looks_like_everyday_request(text):
         return True
     news_signals = (
         "新闻",
@@ -1957,9 +1951,9 @@ def _is_general_conversation(message: str, topic: str | None = None) -> bool:
     return any(signal in lowered for signal in general_signals)
 
 
-def _general_question_kind(message: str) -> str:
+def _looks_like_everyday_request(message: str) -> bool:
     text = " ".join(str(message or "").strip().split()).lower()
-    weather_signals = (
+    everyday_signals = (
         "天气",
         "气温",
         "温度",
@@ -1970,10 +1964,15 @@ def _general_question_kind(message: str) -> str:
         "风力",
         "空气质量",
         "紫外线",
-    )
-    if any(signal in text for signal in weather_signals):
-        return "weather"
-    route_signals = (
+        "航班",
+        "航班号",
+        "起飞时间",
+        "落地时间",
+        "飞机延误",
+        "航班延误",
+        "航班取消",
+        "登机口",
+        "航站楼",
         "怎么走",
         "路线",
         "导航",
@@ -1986,72 +1985,21 @@ def _general_question_kind(message: str) -> str:
         "步行",
         "自驾",
         "打车",
+        "火车",
+        "高铁",
+        "动车",
+        "列车",
+        "车次",
+        "12306",
+        "余票",
     )
-    from_to_pattern = re.search(r"从.{1,80}(?:到|去).{1,80}", text)
-    if any(signal in text for signal in route_signals) or from_to_pattern:
-        return "route"
-    knowledge_signals = (
-        "什么是",
-        "是什么意思",
-        "怎么理解",
-        "解释一下",
-        "区别是什么",
-        "有什么区别",
-        "为什么",
-        "如何",
-        "原理",
-        "历史上",
+    flight_number_status = re.search(
+        r"(?<![a-z0-9])[a-z0-9]{2,3}\d{1,4}[a-z]?(?![a-z0-9])",
+        text,
+    ) and any(
+        signal in text for signal in ("延误", "取消", "状态", "起飞", "到达", "落地")
     )
-    if any(signal in text for signal in knowledge_signals):
-        return "knowledge"
-    return "conversation"
-
-
-def _general_runtime_message(message: str, kind: str) -> str:
-    guidance = {
-        "weather": (
-            "这是天气查询。请先确认地点和预报对应的日期，调用 WebSearch 核对最新预报；"
-            "说明信息更新时间、温度或降雨区间及出行建议，并给出可点击来源链接。"
-            "若没有获得带日期的可靠来源，不得用历史气候推测今天的气温、降雨或空气质量。"
-        ),
-        "route": (
-            "这是路线查询。请调用 WebSearch 核对地点、交通方式和近期运营信息；"
-            "给出一条首选路线和必要备选；任何班次、票价、限行、耗时等可变信息都要附可点击来源链接。"
-            "没有来源时只给路线框架，不得编造具体数字或当前管制规则，并提醒实时路况和导航结果可能变化。"
-            "若起终点存在关键歧义，只问一个最必要的澄清问题。"
-        ),
-        "knowledge": (
-            "这是通用知识问题。请用自然对话方式直接回答，并调用 WebSearch 核对可能变化的事实；"
-            "概念解释应先给结论，再给必要背景和可靠来源。"
-        ),
-        "conversation": "这是通用对话。请自然、直接地回应；若涉及可变事实，先用 WebSearch 核对。",
-    }
-    return f"{message}\n\n回答要求：{guidance.get(kind, guidance['conversation'])}"
-
-
-def _guard_live_general_answer(
-    answer: str,
-    original_message: str,
-    kind: str,
-    *,
-    allow_web_search: bool,
-    declared_sources: list[SearchResult],
-) -> str:
-    if kind not in {"weather", "route"} or not allow_web_search or declared_sources:
-        return answer
-    if kind == "weather":
-        return (
-            "## 暂未取得可核验的实时天气来源\n\n"
-            "本轮外部搜索没有返回带日期、可点击的天气来源，因此我不使用历史气候数据猜测今天的温度或降雨。\n\n"
-            f"你的问题是：{original_message}\n\n"
-            "建议先查看当地气象部门、中国天气网或手机系统天气中的逐小时预报；"
-            "拿到预报后，我可以继续帮你判断是否带伞、如何穿衣和安排出行。"
-        )
-    return (
-        "> 本轮外部搜索没有返回可点击的交通来源；下面只能作为路线思路，"
-        "不能视为实时班次、票价、限行或路况。出发前请以 12306 和地图导航为准。\n\n"
-        f"{answer}"
-    )
+    return bool(any(signal in text for signal in everyday_signals) or flight_number_status)
 
 
 def _is_social_smalltalk(message: str) -> bool:

@@ -880,14 +880,15 @@ def test_general_knowledge_uses_no_skill_but_current_news_uses_research_skill(se
     assert news_runtime.skill_names == [NEWS_CONVERSATION_RESEARCH_SKILL_NAME]
 
 
-def test_weather_and_route_queries_use_general_cc_with_web_search_guidance(services):
+def test_live_service_queries_pass_the_original_message_to_general_cc(services):
     _, store, _ = services
-    for index, (question, expected_hint) in enumerate(
-        [
-            ("今天上海天气怎么样，出门需要带伞吗？", "天气查询"),
-            ("从上海虹桥火车站到西湖景区怎么走？", "路线查询"),
-        ]
-    ):
+    questions = [
+        "今天上海天气怎么样，出门需要带伞吗？",
+        "上海虹桥火车站到西湖景区怎么走？",
+        "明天北京到上海有哪些高铁？",
+        "CA1832 明天是否延误？",
+    ]
+    for index, question in enumerate(questions):
         runtime = FakeCCRuntime()
         chat = NewsChatService(store, RecordingSearchService(), llm_client=FakeDisabledLLM(), cc_runtime=runtime)
         response = asyncio.run(
@@ -904,12 +905,10 @@ def test_weather_and_route_queries_use_general_cc_with_web_search_guidance(servi
         assert runtime.skill_names == []
         assert runtime.last_kwargs["allow_web_search"] is True
         assert runtime.last_kwargs["allow_local_search"] is False
-        assert expected_hint in runtime.last_kwargs["message"]
-        if expected_hint == "天气查询":
-            assert "暂未取得可核验的实时天气来源" in response.answer
-            assert "历史气候数据猜测" in response.answer
-        else:
-            assert "不能视为实时班次、票价、限行或路况" in response.answer
+        assert runtime.last_kwargs["allow_everyday_tools"] is True
+        assert runtime.last_kwargs["require_builtin_web_search"] is False
+        assert runtime.last_kwargs["message"] == question
+        assert response.answer == "## Runtime 汇总\n\n证据支持这项变化。"
 
 
 def test_current_news_wording_is_not_misrouted_as_general_knowledge(services):
