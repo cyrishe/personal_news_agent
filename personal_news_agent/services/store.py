@@ -1059,8 +1059,19 @@ class NewsStore:
             row = conn.execute("SELECT * FROM pna_users WHERE mobile = ?", (mobile,)).fetchone()
         return _row(row) if row else None
 
-    def delete_phone_user(self, mobile: str, mobile_hash: str, *, confirm: bool = False) -> dict[str, Any]:
-        """Preview or atomically delete one phone account and its user-owned records."""
+    def delete_phone_user(
+        self,
+        mobile: str,
+        mobile_hash: str | None = None,
+        *,
+        confirm: bool = False,
+    ) -> dict[str, Any]:
+        """Preview or atomically delete one phone account and its user-owned records.
+
+        Verification challenges are short-lived operational records. They are
+        cleaned as a best effort when the caller can identify them, but they
+        never block deletion of the account or user-owned data.
+        """
 
         user_tables = (
             "pna_user_profiles",
@@ -1091,12 +1102,13 @@ class NewsStore:
                 else:
                     counts[table] = 0
             counts["pna_users"] = len(user_ids)
-            counts["pna_phone_verification_challenges"] = int(
-                conn.execute(
-                    "SELECT COUNT(*) AS count FROM pna_phone_verification_challenges WHERE mobile_hash = ?",
-                    (mobile_hash,),
-                ).fetchone()["count"]
-            )
+            if mobile_hash:
+                counts["pna_phone_verification_challenges"] = int(
+                    conn.execute(
+                        "SELECT COUNT(*) AS count FROM pna_phone_verification_challenges WHERE mobile_hash = ?",
+                        (mobile_hash,),
+                    ).fetchone()["count"]
+                )
             result = {
                 "mobile_masked": f"{mobile[:3]}****{mobile[-4:]}",
                 "user_ids": user_ids,
@@ -1113,10 +1125,11 @@ class NewsStore:
                     for table in user_tables:
                         conn.execute(f"DELETE FROM {table} WHERE user_id IN ({placeholders})", user_ids)
                     conn.execute(f"DELETE FROM pna_users WHERE id IN ({placeholders})", user_ids)
-                conn.execute(
-                    "DELETE FROM pna_phone_verification_challenges WHERE mobile_hash = ?",
-                    (mobile_hash,),
-                )
+                if mobile_hash:
+                    conn.execute(
+                        "DELETE FROM pna_phone_verification_challenges WHERE mobile_hash = ?",
+                        (mobile_hash,),
+                    )
             except Exception:
                 conn.rollback()
                 raise

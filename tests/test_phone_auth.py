@@ -100,6 +100,30 @@ def test_delete_phone_user_previews_then_removes_account_sessions_and_challenges
         ).fetchone()[0] == 0
 
 
+def test_delete_phone_user_does_not_require_verification_secret(tmp_path: Path) -> None:
+    auth = _auth(tmp_path)
+    mobile = "13800138000"
+    challenge = auth.request_registration_code(mobile, "127.0.0.1")
+    registered = auth.register_phone(
+        mobile=mobile,
+        challenge_id=challenge["challenge_id"],
+        verification_code="123456",
+        password="12345678",
+        confirm_password="12345678",
+    )
+    user_id = registered["user"]["id"]
+
+    preview = auth.store.delete_phone_user(mobile)
+    assert preview["counts"]["pna_users"] == 1
+    assert "pna_phone_verification_challenges" not in preview["counts"]
+
+    deleted = auth.store.delete_phone_user(mobile, confirm=True)
+    assert deleted["deleted"] is True
+    assert auth.store.get_user(user_id) is None
+    with auth.store.connect() as conn:
+        assert conn.execute("SELECT COUNT(*) FROM pna_auth_sessions WHERE user_id = ?", (user_id,)).fetchone()[0] == 0
+
+
 def test_change_phone_user_preserves_identity_password_session_and_owned_data(tmp_path: Path) -> None:
     auth = _auth(tmp_path)
     old_mobile = "13800138000"

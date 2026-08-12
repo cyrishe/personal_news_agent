@@ -146,3 +146,7 @@ def test_delete_phone_user_script_has_valid_python_syntax():
     for name in ("delete_phone_user.py", "change_phone_user.py"):
         script = ROOT / "scripts" / name
         compile(script.read_text(encoding="utf-8"), str(script), "exec")
+
+    delete_script = (ROOT / "scripts" / "delete_phone_user.py").read_text(encoding="utf-8")
+    assert "PhoneVerificationService" not in delete_script
+    assert "phone_challenge_secret" not in delete_script
