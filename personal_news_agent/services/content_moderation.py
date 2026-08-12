@@ -235,6 +235,11 @@ class TextModerationPlusService:
         risk_level = data.get("RiskLevel")
         label = first.get("Label")
         description = first.get("Description")
+        if str(code) != "200":
+            message = str(payload.get("Message") or "Aliyun TextModerationPlus request failed")
+            request_id = payload.get("RequestId")
+            suffix = f" request_id={request_id}" if request_id else ""
+            raise ContentModerationError(f"{message}{suffix}")
         # 当前按控制台验证过的安全返回判断：无风险且无标签才允许继续进入聊天流程。
         allowed = code == 200 and risk_level == "none" and label == "nonLabel"
         return ContentModerationResult(

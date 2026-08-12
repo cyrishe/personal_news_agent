@@ -47,6 +47,7 @@ from personal_news_agent.services.chat_understanding import (
     categories_for_message,
     query_from_message,
 )
+from personal_news_agent.services.content_moderation import ContentModerationError, TextModerationPlusService
 from personal_news_agent.services.native_ingestion import NativeSearchIngestionService
 from personal_news_agent.services.personalization import PersonalizationService
 from personal_news_agent.services.report_export import export_report
@@ -126,6 +127,21 @@ def test_external_provider_factory_selects_tavily():
     missing_key = Settings(external_search_provider="tavily", tavily_api_key=None)
     assert isinstance(external_provider_from_settings(configured), TavilySearchProvider)
     assert not external_provider_from_settings(missing_key).configured
+
+
+def test_content_moderation_service_error_is_not_a_policy_block():
+    service = TextModerationPlusService(access_key_id="ak", access_key_secret="sk")
+
+    with pytest.raises(ContentModerationError) as exc_info:
+        service._parse_result(
+            {
+                "Code": "Forbidden",
+                "Message": "you haven’t activated the commodity:lvwang_cip_public_cn",
+                "RequestId": "req-test",
+            }
+        )
+
+    assert "lvwang_cip_public_cn" in str(exc_info.value)
 
 
 def test_external_search_requires_explicit_permission(services):
