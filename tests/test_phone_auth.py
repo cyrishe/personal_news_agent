@@ -4,7 +4,7 @@ import pytest
 
 from personal_news_agent.config import Settings
 from personal_news_agent.services.auth import AuthError, AuthService
-from personal_news_agent.services.phone_verification import PhoneVerificationError
+from personal_news_agent.services.phone_verification import PhoneVerificationError, PhoneVerificationService
 from personal_news_agent.services.store import NewsStore
 
 
@@ -234,6 +234,67 @@ def test_aliyun_phone_registration_reuses_provider_credentials_for_internal_hash
     assert status["provider"] == "aliyun_pnvs"
     assert status["secret_configured"] is True
     assert status["provider_configured"] is True
+
+
+@pytest.mark.parametrize("provider_code", ["BUSINESS_LIMIT_CONTROL", "FREQUENCY_FAIL"])
+def test_aliyun_send_frequency_errors_are_public_rate_limits(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    provider_code: str,
+) -> None:
+    auth = _auth(tmp_path)
+    service: PhoneVerificationService = auth.phone_verification
+    object.__setattr__(service, "provider", "aliyun_pnvs")
+
+    class Response:
+        body = {"Code": provider_code, "Message": "provider detail", "RequestId": "request-123"}
+
+    class Client:
+        def send_sms_verify_code_with_options(self, request, runtime):
+            return Response()
+
+    monkeypatch.setattr(service, "_pnvs_client", lambda: Client())
+    monkeypatch.setattr(service, "_pnvs_send_request", lambda mobile, challenge_id: object())
+    monkeypatch.setattr(service, "_pnvs_runtime", lambda: object())
+
+    with pytest.raises(PhoneVerificationError) as failure:
+        service._send_code("13800138000", "pvc_test")
+
+    assert failure.value.code == "phone_code_rate_limited"
+    assert failure.value.status_code == 429
+
+
+def test_aliyun_send_exception_is_logged_without_sensitive_request_data(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    auth = _auth(tmp_path)
+    service: PhoneVerificationService = auth.phone_verification
+    object.__setattr__(service, "provider", "aliyun_pnvs")
+
+    class ProviderFailure(Exception):
+        code = "INVALID_PARAMETERS"
+        message = "parameter is not valid"
+        data = {"RequestId": "request-456"}
+
+    class Client:
+        def send_sms_verify_code_with_options(self, request, runtime):
+            raise ProviderFailure()
+
+    monkeypatch.setattr(service, "_pnvs_client", lambda: Client())
+    monkeypatch.setattr(service, "_pnvs_send_request", lambda mobile, challenge_id: object())
+    monkeypatch.setattr(service, "_pnvs_runtime", lambda: object())
+
+    with pytest.raises(PhoneVerificationError) as failure:
+        service._send_code("13800138000", "pvc_sensitive_challenge")
+
+    output = capsys.readouterr().out
+    assert failure.value.code == "phone_code_send_unavailable"
+    assert '"provider_code":"INVALID_PARAMETERS"' in output
+    assert '"request_id":"request-456"' in output
+    assert "13800138000" not in output
+    assert "pvc_sensitive_challenge" not in output
 
 
 def test_phone_registration_rejects_invalid_mobile_as_public_auth_error(tmp_path: Path) -> None:

@@ -144,7 +144,13 @@ import fastapi
 import starlette
 import uvicorn  # noqa: F401
 
+from personal_news_agent.config import settings
 from personal_news_agent.services.source_registry import SourceRegistryService
+
+if settings.phone_challenge_provider.strip().lower() == "aliyun_pnvs":
+    from alibabacloud_dypnsapi20170525.client import Client  # noqa: F401
+    from alibabacloud_tea_openapi import models as open_api_models  # noqa: F401
+    from alibabacloud_tea_util import models as util_models  # noqa: F401
 
 fastapi.FastAPI(title="Personal News Agent preflight")
 registry = SourceRegistryService(Path("sources.yaml"))
@@ -152,7 +158,8 @@ registry.load()
 print(
     "Preflight OK: "
     f"FastAPI {fastapi.__version__}, Starlette {starlette.__version__}, "
-    f"and {len(registry.all_sources())} sources loaded."
+    f"{len(registry.all_sources())} sources loaded, "
+    f"phone provider {settings.phone_challenge_provider}."
 )
 PY
 }

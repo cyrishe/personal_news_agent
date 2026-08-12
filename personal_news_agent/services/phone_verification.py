@@ -292,17 +292,32 @@ class PhoneVerificationService:
     def _send_code(self, mobile: str, challenge_id: str) -> str:
         if self.provider == "mock":
             return f"mock:{challenge_id}"
-        response = self._pnvs_client().send_sms_verify_code_with_options(
-            self._pnvs_send_request(mobile, challenge_id),
-            self._pnvs_runtime(),
-        )
-        body = _read_value(response, "body") or response
-        if str(_read_value(body, "code", "Code") or "").upper() != "OK":
-            raise PhoneVerificationError(
-                "phone_code_send_unavailable",
-                "验证码发送服务暂时不可用，请稍后重试。",
-                status_code=503,
+        try:
+            response = self._pnvs_client().send_sms_verify_code_with_options(
+                self._pnvs_send_request(mobile, challenge_id),
+                self._pnvs_runtime(),
             )
+        except Exception as exc:
+            provider_code = _provider_exception_value(exc, "code", "Code")
+            provider_message = _provider_exception_value(exc, "message", "Message")
+            request_id = _provider_exception_value(exc, "request_id", "requestId", "RequestId")
+            _log_provider_failure(
+                phase="send",
+                provider_code=provider_code or type(exc).__name__,
+                provider_message=provider_message,
+                request_id=request_id,
+            )
+            raise _provider_send_error(provider_code) from None
+        body = _read_value(response, "body") or response
+        provider_code = str(_read_value(body, "code", "Code") or "")
+        if provider_code.upper() != "OK":
+            _log_provider_failure(
+                phase="send",
+                provider_code=provider_code or "unknown",
+                provider_message=str(_read_value(body, "message", "Message") or ""),
+                request_id=str(_read_value(body, "request_id", "requestId", "RequestId") or ""),
+            )
+            raise _provider_send_error(provider_code)
         return str(_read_value(body, "request_id", "requestId", "RequestId") or "")
 
     def _verify_pnvs(self, mobile: str, code: str, challenge_id: str) -> bool:
@@ -411,3 +426,51 @@ def _read_value(value: Any, *names: str) -> Any:
         if hasattr(value, name):
             return getattr(value, name)
     return None
+
+
+def _provider_exception_value(exc: Exception, *names: str) -> str:
+    direct = _read_value(exc, *names)
+    if direct not in (None, ""):
+        return str(direct)
+    data = _read_value(exc, "data")
+    nested = _read_value(data, *names)
+    return str(nested or "")
+
+
+def _provider_send_error(provider_code: str) -> PhoneVerificationError:
+    normalized = str(provider_code or "").strip().upper()
+    if normalized in {"BUSINESS_LIMIT_CONTROL", "FREQUENCY_FAIL", "THROTTLING", "THROTTLING.USER"}:
+        return PhoneVerificationError(
+            "phone_code_rate_limited",
+            "验证码请求过于频繁，请稍后再试。",
+            status_code=429,
+            retry_after_seconds=60,
+        )
+    if normalized == "MOBILE_NUMBER_ILLEGAL":
+        return PhoneVerificationError("invalid_mobile", "请输入有效的 11 位中国大陆手机号。")
+    return PhoneVerificationError(
+        "phone_code_send_unavailable",
+        "验证码发送服务暂时不可用，请稍后重试。",
+        status_code=503,
+    )
+
+
+def _log_provider_failure(
+    *,
+    phase: str,
+    provider_code: str,
+    provider_message: str = "",
+    request_id: str = "",
+) -> None:
+    # Deliberately excludes phone numbers, verification codes and credentials.
+    payload = {
+        "event": "phone_provider_failure",
+        "provider": "aliyun_pnvs",
+        "phase": phase,
+        "provider_code": str(provider_code or "unknown")[:120],
+    }
+    if provider_message:
+        payload["provider_message"] = str(provider_message)[:300]
+    if request_id:
+        payload["request_id"] = str(request_id)[:160]
+    print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), flush=True)
