@@ -8,7 +8,8 @@
       content="个人资讯助手：主动捕捉热点、判断信息真伪、沉淀专题脉络，并按用户定时任务生成主题报告。"
     />
     <title>个人资讯助手 · Agentic News Intelligence</title>
-    <link rel="stylesheet" href="static/styles.css?v=20260810-subpath-1" />
+    <link rel="stylesheet" href="static/styles.css?v=20260812-landing-10" />
+    <script defer src="static/landing.js?v=20260812-landing-10"></script>
   </head>
   <body class="landing-shell">
     <header class="landing-nav">
@@ -23,6 +24,7 @@
         <a href="#capabilities">核心能力</a>
         <a href="#workflow">工作流</a>
         <a href="#trust">可信机制</a>
+        <a href="#about">关于我们</a>
       </nav>
       <div class="landing-actions">
         <a class="ghost-link" href="web">进入工作台</a>
@@ -33,28 +35,44 @@
     <main>
       <section class="landing-hero">
         <div class="hero-copy">
-          <p class="eyebrow">PORTAL CRAWLING · TOPIC FUSION · SCHEDULED PUSH</p>
-          <h1>从海量新闻源出发，让 Agent 主动捕捉关键变化。</h1>
+          <p class="eyebrow">PERSONAL NEWS AGENT · ALWAYS LEARNING</p>
+          <h1>
+            <span>不止回答此刻，</span>
+            <span>我们持续追踪</span>
+            <span class="hero-accent">下一次变化。</span>
+          </h1>
           <p class="hero-lead">
-            系统持续扫描门户索引页和专题站点，一层 follow 抓取正文，去重入库后结合大模型抽取主题、事件和核心摘要，
-            最终面向个人兴趣生成热点解读、真相判断和定时主题报告。
+            我们持续扫描新闻源，把散落报道还原为一条清晰的事件脉络：自动追踪热度，深入分析影响，
+            逐条核查真伪，并把人物、机构与事件关系展开成可探索图谱。每一次关注和追问，也让我们更懂你。
           </p>
+          <div class="hero-promise" aria-label="产品核心承诺">
+            <span><i></i><strong>主动回来找你</strong>，不必反复搜索</span>
+            <span><i></i><strong>每个判断有证据</strong>，不是黑箱结论</span>
+          </div>
           <div class="hero-cta">
-            <a class="primary-link large" href="auth">立即登录使用</a>
-            <a class="ghost-link large" href="web">查看工作台</a>
+            <a class="primary-link large" href="auth">开始构建我的资讯智能体</a>
+            <a class="ghost-link large" href="#capabilities">探索核心能力</a>
           </div>
           <div class="hero-metrics" aria-label="产品能力指标">
             <article>
-              <strong>15min</strong>
-              <span>低频持续轮询</span>
+              <small>ALWAYS ON</small>
+              <strong>7 × 24</strong>
+              <span>自动追踪重要变化</span>
             </article>
             <article>
-              <strong>1-hop</strong>
-              <span>索引页链接跟随</span>
+              <small>EVIDENCE</small>
+              <strong>多源</strong>
+              <span>事实核查与证据归档</span>
             </article>
             <article>
-              <strong>4+ 类</strong>
-              <span>热点/真相/报告/推送</span>
+              <small>EXPLORE</small>
+              <strong>可探索</strong>
+              <span>关联人物与事件图谱</span>
+            </article>
+            <article>
+              <small>ADAPTIVE</small>
+              <strong>持续学习</strong>
+              <span>适应你的兴趣与节奏</span>
             </article>
           </div>
         </div>
@@ -65,63 +83,114 @@
             <strong>NEWS AGENT · INTELLIGENCE CONSOLE</strong>
             <em>Agent Online</em>
           </div>
-          <div class="preview-tabs">
-            <span class="active">热点解读</span>
-            <span>真相判断</span>
-            <span>定时报告</span>
+          <div class="preview-tabs" role="tablist" aria-label="能力演示">
+            <button class="active" type="button" role="tab" aria-selected="true" aria-controls="preview-demo-panel" data-preview-key="tracking"><span>01</span>自动追踪</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="preview-demo-panel" data-preview-key="analysis"><span>02</span>深度分析</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="preview-demo-panel" data-preview-key="factcheck"><span>03</span>真伪核查</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="preview-demo-panel" data-preview-key="map"><span>04</span>事件图谱</button>
           </div>
-          <div class="preview-dialog">
-            <p class="preview-user">帮我盯一下 AI 终端和中东局势今天的新变化。</p>
+          <div id="preview-demo-panel" class="preview-dialog" role="tabpanel">
+            <div class="preview-demo-meta"><span>PRODUCT DEMO</span><em data-preview-demo-status>多源信号持续更新</em></div>
+            <p class="preview-user" data-preview-prompt>帮我持续追踪台风对华南沿海交通的影响，有重要变化就提醒我。</p>
             <div class="preview-agent">
               <div class="mini-agent-mark">N</div>
               <div>
                 <strong>News Agent</strong>
-                <small>已从门户索引页、搜索结果和近期主题中合并事件。</small>
+                <small data-preview-agent-copy>正在合并门户索引页、近期主题和相同事件的更新频率。</small>
               </div>
             </div>
             <ol class="preview-steps">
-              <li><span>01</span>识别来源索引页与板块</li>
-              <li><span>02</span>正文抓取、URL 与内容去重</li>
-              <li><span>03</span>主题融合、事件摘要与证据归档</li>
+              <li><span>01</span><div><strong data-preview-step-title>发现异常信号</strong><small data-preview-step-copy>多个新闻源在短时间内集中更新</small></div><em>完成</em></li>
+              <li><span>02</span><div><strong data-preview-step-title>合并同一事件</strong><small data-preview-step-copy>正文、URL 与事件语义多重去重</small></div><em>完成</em></li>
+              <li><span>03</span><div><strong data-preview-step-title>计算变化热度</strong><small data-preview-step-copy>综合来源数、更新频率与用户兴趣</small></div><em>追踪中</em></li>
             </ol>
-            <section class="preview-result">
-              <small>示例结果</small>
-              <h2>AI 终端供应链热度继续上升</h2>
-              <p>多家门户科技频道集中出现新品、供应链和应用生态内容，建议纳入未来 48 小时跟踪。</p>
-              <div class="bar-chart" aria-hidden="true">
-                <i style="--h: 42%"></i><i style="--h: 58%"></i><i style="--h: 52%"></i><i style="--h: 78%"></i><i style="--h: 86%"></i>
+            <section class="preview-result" aria-live="polite">
+              <div class="preview-result-head">
+                <small data-preview-label>追踪信号</small>
+                <span data-preview-result-meta>演示数据 · 6 个来源</span>
               </div>
+              <h2 data-preview-title>沿海交通影响热度连续三个时段上升</h2>
+              <p data-preview-copy>相关报道从气象预警扩展到铁路、航班和港口安排，已达到主动提醒阈值。</p>
+              <div class="preview-visual" data-preview-viz aria-label="自动追踪演示图"></div>
             </section>
           </div>
         </aside>
       </section>
 
+      <section class="signal-ribbon" aria-label="产品原则">
+        <article>
+          <span>01</span>
+          <div><strong>持续感知</strong><small>门户与专题索引页常态轮询</small></div>
+        </article>
+        <article>
+          <span>02</span>
+          <div><strong>证据优先</strong><small>来源、时间与正文互相校验</small></div>
+        </article>
+        <article>
+          <span>03</span>
+          <div><strong>个性适配</strong><small>结合用户兴趣与实时热度排序</small></div>
+        </article>
+        <article>
+          <span>04</span>
+          <div><strong>主动送达</strong><small>定时专题沉淀到专属推送会话</small></div>
+        </article>
+      </section>
+
       <section id="capabilities" class="landing-section">
         <div class="section-head">
           <p class="eyebrow">CORE CAPABILITIES</p>
-          <h2>围绕个人信息助理的四条主线</h2>
+          <h2>从发现变化，到理解与核查事件</h2>
+          <p>四项能力围绕同一个事件上下衔接：先发现异常热度，再补齐脉络、核验证据，并把复杂关系变成可继续探索的图谱。</p>
         </div>
         <div class="capability-grid">
           <article>
-            <span>01</span>
-            <h3>热点解读</h3>
-            <p>将分散新闻合并为板块、主题和事件摘要，减少重复阅读，突出真正变化。</p>
+            <div class="capability-index"><span>01</span><em>TRACK</em></div>
+            <h3>热点自动追踪</h3>
+            <p>结合多家门户的集中报道、相同事件在数小时内的更新频率与用户兴趣，持续识别值得关注的新变化。</p>
+            <small>多源热度 · 更新频率 · 变化提醒</small>
           </article>
           <article>
-            <span>02</span>
-            <h3>真相判断</h3>
-            <p>围绕声明、争议和传闻组织证据，区分已证实、待核验和来源冲突的信息。</p>
+            <div class="capability-index"><span>02</span><em>ANALYZE</em></div>
+            <h3>事件深度分析</h3>
+            <p>围绕人物、时间、地点、原因、影响和争议补齐事件脉络，把零散报道组织成可以继续追问的专题。</p>
+            <small>背景脉络 · 时间线 · 影响研判</small>
           </article>
           <article>
-            <span>03</span>
-            <h3>主动捕捉</h3>
-            <p>系统资产绑定门户索引页和板块，后台低并发持续扫描，不依赖用户手动搜索。</p>
+            <div class="capability-index"><span>03</span><em>VERIFY</em></div>
+            <h3>事件真伪核查</h3>
+            <p>拆分新闻中的关键主张，联动本地新闻引擎与外部搜索，对照权威来源、独立证据和时间信息。</p>
+            <small>主张拆分 · 多源举证 · 可信结论</small>
           </article>
           <article>
-            <span>04</span>
-            <h3>定时主题报告</h3>
-            <p>用户用自然语言创建定时任务，系统按时间生成专题报告并推送到专属会话。</p>
+            <div class="capability-index"><span>04</span><em>CONNECT</em></div>
+            <h3>关联事件图谱</h3>
+            <p>把人物、机构、地点、时间和事件关系可视化；点击节点即可继续搜索、追问或发起事实核查。</p>
+            <small>关系网络 · 可交互节点 · 继续探索</small>
           </article>
+        </div>
+      </section>
+
+      <section class="landing-section personal-agent-section" aria-labelledby="personal-agent-title">
+        <div class="personal-agent-copy">
+          <p class="eyebrow">YOUR NEWS AGENT</p>
+          <h2 id="personal-agent-title">越用越懂你的新闻资讯智能体</h2>
+          <p>
+            你关注什么、什么时候阅读、喜欢怎样的报告结构，都会逐步转化为可持续的服务方式。
+            Agent 保留你的选择权，在明确偏好中学习，在重要变化出现时主动回来找你。
+          </p>
+          <div class="agent-traits" aria-label="产品特点">
+            <span>个性化兴趣排序</span>
+            <span>定制化专题与节奏</span>
+            <span>持续学习阅读偏好</span>
+            <span>适应用户反馈变化</span>
+          </div>
+        </div>
+        <div class="learning-loop" aria-label="智能体学习闭环">
+          <article><span>01</span><strong>理解你的关注</strong><small>板块、主题、人物与事件</small></article>
+          <article><span>02</span><strong>组织专属信息</strong><small>追踪范围、证据深度与呈现方式</small></article>
+          <article><span>03</span><strong>接收真实反馈</strong><small>点击、追问、核查与主动调整</small></article>
+          <article><span>04</span><strong>持续适应变化</strong><small>下一次推荐更及时、更贴近需要</small></article>
+          <div class="learning-loop-core"><em>LEARNING LOOP</em><strong>持续理解</strong></div>
         </div>
       </section>
 
@@ -129,26 +198,61 @@
         <div class="section-head">
           <p class="eyebrow">AGENT WORKFLOW</p>
           <h2>从索引页到个人专题的稳定链路</h2>
+          <p>采集、理解、核验和交付各自保持清晰边界，每一步都能回到原始信息。</p>
         </div>
         <div class="workflow-grid">
-          <article><strong>Index Assets</strong><span>门户首页、频道页、专题索引页</span></article>
-          <article><strong>One-hop Fetch</strong><span>提取 title / url / content 并去重</span></article>
-          <article><strong>LLM Extraction</strong><span>抽取 subject / topic / event / summary</span></article>
-          <article><strong>User Delivery</strong><span>工作台展示、专题报告、定时推送</span></article>
+          <article><small>01 · SENSE</small><strong>Index Assets</strong><span>门户首页、频道页、专题索引页</span></article>
+          <article><small>02 · COLLECT</small><strong>One-hop Fetch</strong><span>提取 title / url / content 并去重</span></article>
+          <article><small>03 · REASON</small><strong>Topic Intelligence</strong><span>融合 subject / topic / event / summary</span></article>
+          <article><small>04 · DELIVER</small><strong>User Delivery</strong><span>工作台展示、专题报告、定时推送</span></article>
         </div>
       </section>
 
       <section id="trust" class="landing-section trust-section">
-        <div>
+        <div class="trust-copy">
           <p class="eyebrow">PRODUCT PRINCIPLE</p>
           <h2>产品化，但不牺牲可追踪性。</h2>
           <p>
-            UI 只负责表达和交互，后台仍保持既有 API、用户配置、抓取、入库、专题和定时任务流程。
-            每个专题结果都会尽量保留来源、证据、主体、事件线和后续观察建议。
+            Agent 的结论不是黑箱终点。每个专题都会尽量保留来源、证据、主体、事件线和后续观察建议，
+            让用户知道结论从哪里来、哪些已经确认、哪些仍需继续等待。
           </p>
+          <a class="primary-link large" href="auth">进入个人资讯助手</a>
         </div>
-        <a class="primary-link large" href="auth">进入个人资讯助手</a>
+        <div class="trust-proof-grid" aria-label="可信能力">
+          <article><span>来源</span><strong>原文可追溯</strong><small>保留来源站点、标题、URL 与发布时间</small></article>
+          <article><span>证据</span><strong>多源交叉核验</strong><small>区分共同事实、单方说法与信息冲突</small></article>
+          <article><span>过程</span><strong>执行状态可见</strong><small>呈现本地新闻引擎与外部搜索进度</small></article>
+          <article><span>边界</span><strong>不确定性明确</strong><small>证据不足时保留判断，不制造确定答案</small></article>
+        </div>
       </section>
     </main>
+
+    <footer id="about" class="landing-footer">
+      <div class="footer-brand-block">
+        <span class="brand-mark">N</span>
+        <div>
+          <strong>Personal News Agent</strong>
+          <p>由金证优智 KingdomAI 提供产品与技术支持</p>
+        </div>
+      </div>
+      <div class="footer-contact">
+        <div>
+          <small>COMPANY</small>
+          <strong>金证优智 · KingdomAI</strong>
+        </div>
+        <div>
+          <small>ADDRESS</small>
+          <address>深圳市南山区科技园高新南五道9号</address>
+        </div>
+        <div>
+          <small>EMAIL</small>
+          <a href="mailto:service@kingdomai.com">service@kingdomai.com</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 金证优智 KingdomAI</span>
+        <span>Agentic News Intelligence</span>
+      </div>
+    </footer>
   </body>
 </html>

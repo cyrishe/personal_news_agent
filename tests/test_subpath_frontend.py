@@ -16,6 +16,46 @@ def test_frontend_assets_and_navigation_do_not_escape_reverse_proxy_prefix(name:
     assert 'src="/' not in source
 
 
+def test_landing_page_exposes_product_story_and_company_contact():
+    landing = (STATIC_DIR / "landing.html").read_text(encoding="utf-8")
+    styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert "styles.css?v=20260812-landing-10" in landing
+    assert "landing.js?v=20260812-landing-10" in landing
+    assert "PERSONAL NEWS AGENT · ALWAYS LEARNING" in landing
+    assert "我们持续追踪" in landing
+    assert "主动回来找你" in landing
+    assert "每个判断有证据" in landing
+    assert "它持续扫描" not in landing
+    assert "PRODUCT DEMO" in landing
+    assert "signal-ribbon" in landing
+    assert "trust-proof-grid" in landing
+    assert "热点自动追踪" in landing
+    assert "事件深度分析" in landing
+    assert "事件真伪核查" in landing
+    assert "关联事件图谱" in landing
+    assert "learning-loop" in landing
+    assert "金证优智 · KingdomAI" in landing
+    assert "深圳市南山区科技园高新南五道9号" in landing
+    assert 'href="mailto:service@kingdomai.com"' in landing
+    assert 'href="auth"' in landing
+    assert 'href="web"' in landing
+    assert "body.landing-shell" in styles
+    assert '"PingFang SC"' in styles
+    assert ".landing-footer" in styles
+    script = (STATIC_DIR / "landing.js").read_text(encoding="utf-8")
+    assert "data-preview-key" in landing
+    assert "aria-selected" in script
+    assert "scenarios" in script
+    assert "data-preview-prompt" in landing
+    assert "data-preview-step-title" in landing
+    assert "tracking-viz" in script
+    assert "timeline-viz" in script
+    assert "factcheck-viz" in script
+    assert "data-graph-node" in script
+    assert "演示数据" in script
+
+
 def test_shared_client_preserves_pna_prefix_for_api_requests():
     source = (STATIC_DIR / "shared.js").read_text(encoding="utf-8")
     assert 'const prefix = "/pna"' in source
