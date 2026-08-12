@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 import importlib.util
@@ -8,6 +7,7 @@ import json
 from pathlib import Path
 import re
 from typing import Any, Awaitable, Callable
+import anyio
 
 from personal_news_agent.config import BASE_DIR, Settings
 from personal_news_agent.core.models import SearchResult, TimeRange
@@ -281,7 +281,7 @@ class CCRuntimeOrchestrator:
             allow_web_search and self.settings.cc_runtime_builtin_web_search
         )
         try:
-            async with asyncio.timeout(timeout_seconds or self.settings.cc_runtime_timeout_seconds):
+            with anyio.fail_after(timeout_seconds or self.settings.cc_runtime_timeout_seconds):
                 async with client_factory(options=options) as client:
                     attempts = 2 if require_builtin_web_search else 1
                     source_links_present = False
