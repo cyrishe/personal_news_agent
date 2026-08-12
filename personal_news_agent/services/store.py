@@ -325,6 +325,11 @@ CREATE TABLE IF NOT EXISTS operation_logs (
   detail_json TEXT,
   created_at TEXT
 );
+CREATE TABLE IF NOT EXISTS service_state (
+  key TEXT PRIMARY KEY,
+  value_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 """
 
 
@@ -1891,6 +1896,30 @@ class NewsStore:
             conn.execute(
                 "INSERT INTO operation_logs(id, operation, target, status, detail_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                 (stable_id("log", f"{operation}:{target}:{status}:{_now()}"), operation, target, status, json.dumps(detail or {}, ensure_ascii=False, default=str), _now()),
+            )
+
+    def get_service_state(self, key: str) -> dict[str, Any] | None:
+        try:
+            with self.connect() as conn:
+                row = conn.execute("SELECT value_json FROM service_state WHERE key = ?", (key,)).fetchone()
+        except sqlite3.OperationalError as exc:
+            if "no such table" in str(exc).lower():
+                return None
+            raise
+        if not row:
+            return None
+        try:
+            value = json.loads(row["value_json"])
+        except (TypeError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) else None
+
+    def set_service_state(self, key: str, value: dict[str, Any]) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                """INSERT INTO service_state(key, value_json, updated_at) VALUES (?, ?, ?)
+                   ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at""",
+                (key, json.dumps(value, ensure_ascii=False, default=str), _now()),
             )
 
     def seed_demo_articles(self) -> None:

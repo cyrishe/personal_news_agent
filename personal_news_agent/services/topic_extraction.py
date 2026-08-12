@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,10 +29,20 @@ class TopicExtractionService:
         self.llm = llm or LLMClient()
         self.prompt_path = prompt_path or Path(__file__).resolve().parents[1] / "prompts" / "topic_extraction.md"
         self.recent_days = recent_days
+        self._retry_not_before: datetime | None = None
 
     async def process_pending(self, limit: int = 20) -> dict[str, Any]:
         if not self.llm.configured:
             return {"status": "skipped", "reason": "llm_not_configured", "processed": 0, "errors": []}
+        now = datetime.now(timezone.utc)
+        if self._retry_not_before and now < self._retry_not_before:
+            return {
+                "status": "skipped",
+                "reason": "provider_cooldown",
+                "retry_not_before": self._retry_not_before.isoformat(),
+                "processed": 0,
+                "errors": [],
+            }
         processed = []
         errors = []
         for article in self.store.list_unprocessed_topic_articles(limit=limit):
@@ -41,6 +52,9 @@ class TopicExtractionService:
                 error = str(exc).strip() or type(exc).__name__
                 errors.append({"article_id": article["id"], "error": error})
                 self.store.log("topic_extraction", "error", article["id"], {"error": error})
+                if _is_provider_auth_error(error):
+                    self._retry_not_before = datetime.now(timezone.utc) + timedelta(minutes=30)
+                    break
         return {"status": "completed", "processed": len(processed), "items": processed, "errors": errors}
 
     async def process_article(self, article: dict[str, Any]) -> dict[str, Any]:
@@ -48,7 +62,13 @@ class TopicExtractionService:
         allowed_ids = {item["id"] for item in recent}
         custom_prompt = self.prompt_path.read_text(encoding="utf-8") if self.prompt_path.exists() else ""
         payload = {
-            "article": {"article_id": article["id"], "bound_category": article["category"], "title": article["title"], "content": (article.get("content") or "")[:12000]},
+            "article": {
+                "article_id": article["id"],
+                "bound_category": article["category"],
+                "title": article["title"],
+                "summary": (article.get("summary") or "")[:500],
+                "content_excerpt": (article.get("content") or "")[:4000],
+            },
             "recent_topics": [{"topic_id": item["id"], "name": item["name"], "summary": item.get("summary"), "keywords": item["keywords"]} for item in recent],
         }
         messages = [
@@ -65,3 +85,8 @@ class TopicExtractionService:
         merged = self.store.merge_article_into_news_topic(article["id"], extraction.model_dump(), allowed_ids)
         self.store.log("topic_extraction", "ok", article["id"], merged)
         return {"article_id": article["id"], **extraction.model_dump(), **merged}
+
+
+def _is_provider_auth_error(error: str) -> bool:
+    value = error.lower()
+    return "401" in value or "403" in value or "authorization" in value or "unauthorized" in value

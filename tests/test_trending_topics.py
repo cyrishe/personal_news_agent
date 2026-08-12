@@ -277,6 +277,180 @@ def test_trending_topics_prefer_cc_runtime_for_title_clustering(tmp_path):
     assert runtime.calls[0]["timeout_seconds"] == 90
 
 
+def test_unchanged_title_window_reuses_model_clusters_without_new_call(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    runtime = FakeTrendingCCRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+
+    first = asyncio.run(service.recommend("sports_user", limit=2))
+    service._cache.clear()
+    second = asyncio.run(service.recommend("sports_user", limit=2))
+
+    assert first["generation_source"] == "cc_runtime"
+    assert second["generation_source"] == "model_cache"
+    assert len(runtime.calls) == 1
+    assert second["items"][0]["source_count"] == 3
+
+
+def test_model_title_state_survives_service_restart(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    first_runtime = FakeTrendingCCRuntime()
+    asyncio.run(
+        TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=first_runtime).recommend(
+            "sports_user", limit=2
+        )
+    )
+    second_runtime = FakeTrendingCCRuntime()
+
+    result = asyncio.run(
+        TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=second_runtime).recommend(
+            "sports_user", limit=2
+        )
+    )
+
+    assert len(first_runtime.calls) == 1
+    assert second_runtime.calls == []
+    assert result["generation_source"] == "model_cache"
+
+
+def test_small_title_delta_is_visible_immediately_and_waits_for_batch(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    runtime = FakeTrendingCCRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+    asyncio.run(service.recommend("sports_user", limit=6))
+    store.save_article(_article("fresh_1", "xinhua", "女足国家队公布最新集训名单", "sports", 0.1))
+    service._cache.clear()
+
+    result = asyncio.run(service.recommend("sports_user", limit=6))
+
+    assert len(runtime.calls) == 1
+    assert result["generation_source"] == "model_cache"
+    fresh = next(item for item in result["items"] if item["article_ids"] == ["fresh_1"])
+    assert fresh["evidence_level"] == "lead"
+
+
+def test_accumulated_title_batch_triggers_one_incremental_model_call(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    runtime = FakeTrendingCCRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+    asyncio.run(service.recommend("sports_user", limit=6))
+    for index in range(20):
+        store.save_article(
+            _article(
+                f"fresh_{index}",
+                f"source_{index % 4}",
+                f"第{index + 1}条近期体育标题更新",
+                "sports",
+                0.1,
+            )
+        )
+    service._cache.clear()
+    service._last_model_at = datetime.now(timezone.utc) - timedelta(minutes=16)
+
+    asyncio.run(service.recommend("sports_user", limit=6))
+
+    assert len(runtime.calls) == 2
+    payload = json.loads(runtime.calls[1]["message"].split("\n", 1)[1])
+    assert len(payload["articles"]) <= 80
+    assert any(item["article_id"].startswith("fresh_") for item in payload["articles"])
+
+
+def test_large_title_burst_inside_minimum_interval_is_batched(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    runtime = FakeTrendingCCRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+    asyncio.run(service.recommend("sports_user", limit=6))
+    for index in range(30):
+        store.save_article(
+            _article(f"burst_{index}", f"source_{index % 5}", f"突发更新标题{index}", "sports", 0.1)
+        )
+    service._cache.clear()
+
+    result = asyncio.run(service.recommend("sports_user", limit=6))
+
+    assert len(runtime.calls) == 1
+    assert result["generation_source"] == "model_cache"
+
+
+def test_cross_source_burst_can_refresh_before_regular_batch_interval(tmp_path):
+    store = _store(tmp_path)
+    for article in (
+        _article("sport_1", "sina", "国家队公布世界杯预选赛最新阵容", "sports", 2.5),
+        _article("sport_2", "sohu", "世界杯预选赛：国家队新阵容公布", "sports", 1.5),
+        _article("sport_3", "cctv", "国家队确认世界杯预选赛参赛阵容", "sports", 0.5),
+    ):
+        store.save_article(article)
+    runtime = FakeTrendingCCRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+    asyncio.run(service.recommend("sports_user", limit=6))
+    for index in range(8):
+        store.save_article(
+            _article(f"cross_{index}", f"source_{index % 3}", f"跨门户突发标题{index}", "sports", 0.1)
+        )
+    service._cache.clear()
+    service._last_model_at = datetime.now(timezone.utc) - timedelta(minutes=7)
+
+    asyncio.run(service.recommend("sports_user", limit=6))
+
+    assert len(runtime.calls) == 2
+
+
+def test_provider_auth_failure_uses_cooldown_instead_of_repeating(tmp_path):
+    class UnauthorizedRuntime:
+        configured = True
+
+        def __init__(self):
+            self.calls = 0
+
+        async def run(self, **kwargs):
+            self.calls += 1
+            raise RuntimeError("401 Authorization Required")
+
+    store = _store(tmp_path)
+    store.save_article(_article("sport_1", "sina", "国家队公布最新阵容", "sports", 0.2))
+    runtime = UnauthorizedRuntime()
+    service = TrendingTopicService(store, llm=DisabledTrendingLLM(), cc_runtime=runtime, cache_minutes=1)
+
+    first = asyncio.run(service.recommend("sports_user", limit=2))
+    service._cache.clear()
+    second = asyncio.run(service.recommend("sports_user", limit=2))
+
+    assert runtime.calls == 1
+    assert first["generation_source"] == "fallback"
+    assert second["generation_source"] == "fallback"
+    assert service._model_retry_not_before is not None
+
+
 def test_trending_topics_without_llm_returns_recent_article_fallback(tmp_path):
     store = _store(tmp_path)
     store.save_article(_article("recent_1", "cctv", "近期体育报道入口", "sports", 2))

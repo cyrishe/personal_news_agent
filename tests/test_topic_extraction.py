@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+import json
 
 from personal_news_agent.core.models import NormalizedArticle
 from personal_news_agent.core.text import content_hash
@@ -40,6 +41,17 @@ class UnconfiguredLLM:
     configured = False
 
 
+class UnauthorizedTopicLLM:
+    configured = True
+
+    def __init__(self):
+        self.calls = 0
+
+    async def structured(self, messages, schema_name, schema, model_key=None):
+        self.calls += 1
+        raise RuntimeError("401 Authorization Required")
+
+
 def _article(article_id: str, title: str) -> NormalizedArticle:
     body = f"{title}。球队公布最新阵容，下一场比赛将在本周进行，这是用于主题抽取测试的正文。"
     return NormalizedArticle(
@@ -65,6 +77,9 @@ def test_topic_extraction_creates_then_merges_recent_topic(tmp_path):
     assert result["items"][0]["subject"] == "国家足球队"
     assert len(store.list_recent_news_topics("sports")) == 1
     assert "recent_topics" in llm.calls[1][-1]["content"]
+    payload = json.loads(llm.calls[0][-1]["content"])
+    assert "content" not in payload["article"]
+    assert len(payload["article"]["content_excerpt"]) <= 4000
     with store.connect() as conn:
         subjects = [row[0] for row in conn.execute("SELECT subject FROM news_topic_articles ORDER BY article_id").fetchall()]
     assert subjects == ["国家足球队", "国家足球队"]
@@ -83,6 +98,22 @@ def test_topic_extraction_skips_without_configured_llm(tmp_path):
     store = NewsStore(tmp_path / "news.db"); store.init()
     result = asyncio.run(TopicExtractionService(store, llm=UnconfiguredLLM()).process_pending())
     assert result == {"status": "skipped", "reason": "llm_not_configured", "processed": 0, "errors": []}
+
+
+def test_topic_extraction_auth_failure_stops_batch_and_enters_cooldown(tmp_path):
+    store = NewsStore(tmp_path / "news.db"); store.init()
+    store.save_article(_article("a1", "国家队公布世界杯预选赛阵容"))
+    store.save_article(_article("a2", "世界杯预选赛下一场赛程确认"))
+    llm = UnauthorizedTopicLLM()
+    service = TopicExtractionService(store, llm=llm)
+
+    first = asyncio.run(service.process_pending(limit=20))
+    second = asyncio.run(service.process_pending(limit=20))
+
+    assert llm.calls == 1
+    assert len(first["errors"]) == 1
+    assert second["status"] == "skipped"
+    assert second["reason"] == "provider_cooldown"
 
 
 def test_pending_topic_articles_prioritize_latest_and_ignore_future_dates(tmp_path):
