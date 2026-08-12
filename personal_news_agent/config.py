@@ -26,6 +26,24 @@ _load_dotenv(BASE_DIR / ".env")
 EXT_ROOT = Path(os.getenv("PERSONAL_NEWS_EXT_ROOT", "/Volumes/ext"))
 
 
+def _aliyun_credentials_configured() -> bool:
+    access_key_id = (
+        os.getenv("ALIYUN_ACCESS_KEY_ID")
+        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID")
+        or os.getenv("AccessKeyID")
+    )
+    access_key_secret = (
+        os.getenv("ALIYUN_ACCESS_KEY_SECRET")
+        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
+        or os.getenv("AccessKeySecret")
+    )
+    return bool(access_key_id and access_key_secret)
+
+
+def _default_phone_challenge_provider() -> str:
+    return "aliyun_pnvs" if _aliyun_credentials_configured() else "disabled"
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "Personal News Agent"
@@ -103,7 +121,7 @@ class Settings:
     stock_agent_db_url: str | None = os.getenv("PNA_USER_DB_URL") or os.getenv("SIMPLE_BI_PLATFORM_DB_URL")
     phone_challenge_provider: str = os.getenv(
         "PNA_PHONE_CHALLENGE_PROVIDER",
-        os.getenv("FIN_AGENT_PHONE_CHALLENGE_PROVIDER", "disabled"),
+        os.getenv("FIN_AGENT_PHONE_CHALLENGE_PROVIDER", _default_phone_challenge_provider()),
     )
     phone_challenge_secret: str | None = os.getenv("PNA_PHONE_CHALLENGE_SECRET") or os.getenv(
         "FIN_AGENT_PHONE_CHALLENGE_SECRET"
@@ -161,15 +179,9 @@ class Settings:
             os.getenv("FIN_AGENT_PHONE_CHALLENGE_IP_RATE_LIMIT", "20"),
         )
     )
-    pnvs_sign_name: str | None = os.getenv("PNA_PNVS_SIGN_NAME") or os.getenv("FIN_AGENT_PNVS_SIGN_NAME")
-    pnvs_template_code: str = os.getenv(
-        "PNA_PNVS_TEMPLATE_CODE",
-        os.getenv("FIN_AGENT_PNVS_TEMPLATE_CODE", "100001"),
-    )
-    pnvs_scheme_name: str = os.getenv(
-        "PNA_PNVS_SCHEME_NAME",
-        os.getenv("FIN_AGENT_PNVS_SCHEME_NAME", "pna-register"),
-    )
+    pnvs_sign_name: str = "速通互联验证码"
+    pnvs_template_code: str = "100001"
+    pnvs_scheme_name: str = "fin-agent-register"
     pnvs_endpoint: str = os.getenv(
         "PNA_PNVS_ENDPOINT",
         os.getenv("FIN_AGENT_PNVS_ENDPOINT", "dypnsapi.aliyuncs.com"),

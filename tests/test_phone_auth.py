@@ -213,6 +213,29 @@ def test_phone_registration_requires_configured_provider(tmp_path: Path) -> None
     assert unavailable.value.status_code == 503
 
 
+def test_aliyun_phone_registration_reuses_provider_credentials_for_internal_hashing(tmp_path: Path) -> None:
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'aliyun-auth.db'}",
+        seed_demo_data=False,
+        phone_challenge_provider="aliyun_pnvs",
+        phone_challenge_secret=None,
+        aliyun_access_key_id="configured-access-key-id",
+        aliyun_access_key_secret="configured-secret",
+        pnvs_sign_name="速通互联验证码",
+        pnvs_template_code="100001",
+        pnvs_scheme_name="fin-agent-register",
+    )
+    store = NewsStore(settings.sqlite_path)
+    store.init()
+    auth = AuthService(store, settings)
+
+    status = auth.phone_registration_status()
+    assert status["available"] is True
+    assert status["provider"] == "aliyun_pnvs"
+    assert status["secret_configured"] is True
+    assert status["provider_configured"] is True
+
+
 def test_phone_registration_rejects_invalid_mobile_as_public_auth_error(tmp_path: Path) -> None:
     auth = _auth(tmp_path)
     with pytest.raises(AuthError) as invalid:

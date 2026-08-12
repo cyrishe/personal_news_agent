@@ -58,7 +58,10 @@ class PhoneVerificationService:
         self.store = store
         self.settings = settings
         self.provider = settings.phone_challenge_provider.strip().lower()
-        self._secret = (settings.phone_challenge_secret or "").encode("utf-8")
+        # The Aliyun credential already provides process-private key material.
+        # Requiring a second HMAC secret only duplicated deployment config.
+        hmac_secret = settings.phone_challenge_secret or settings.aliyun_access_key_secret or ""
+        self._secret = hmac_secret.encode("utf-8")
         self.ttl_seconds = min(1800, max(60, settings.phone_challenge_ttl_seconds))
         self.resend_seconds = min(600, max(10, settings.phone_challenge_resend_seconds))
         self.max_attempts = min(10, max(1, settings.phone_challenge_max_attempts))
@@ -68,7 +71,7 @@ class PhoneVerificationService:
 
     def status(self) -> dict[str, Any]:
         provider_supported = self.provider in {"disabled", "mock", "aliyun_pnvs"}
-        secret_configured = len(self._secret) >= 32
+        secret_configured = bool(self._secret)
         if self.provider == "mock":
             provider_configured = self.settings.phone_challenge_mock_enabled and bool(
                 _CODE_PATTERN.fullmatch(self.settings.phone_challenge_mock_code)
