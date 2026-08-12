@@ -159,7 +159,8 @@ print(
     "Preflight OK: "
     f"FastAPI {fastapi.__version__}, Starlette {starlette.__version__}, "
     f"{len(registry.all_sources())} sources loaded, "
-    f"phone provider {settings.phone_challenge_provider}."
+    f"phone provider {settings.phone_challenge_provider}, "
+    "phone credentials AccessKeyID/AccessKeySecret."
 )
 PY
 }

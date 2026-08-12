@@ -236,22 +236,24 @@ def test_aliyun_phone_registration_reuses_provider_credentials_for_internal_hash
     assert status["provider_configured"] is True
 
 
-def test_existing_access_key_pair_has_priority_for_aliyun_pnvs(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("AccessKeyID", "pnvs-authorized-id")
-    monkeypatch.setenv("AccessKeySecret", "pnvs-authorized-secret")
-    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "other-id")
-    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "other-secret")
+def test_aliyun_pnvs_uses_only_the_existing_local_access_key_names(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AccessKeyID", "local-id")
+    monkeypatch.setenv("AccessKeySecret", "local-secret")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "ignored-id")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "ignored-secret")
+    monkeypatch.setenv("ALIBABA_CLOUD_ACCESS_KEY_ID", "also-ignored-id")
+    monkeypatch.setenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET", "also-ignored-secret")
 
-    assert _aliyun_credentials() == ("pnvs-authorized-id", "pnvs-authorized-secret")
+    assert _aliyun_credentials() == ("local-id", "local-secret")
 
 
-def test_aliyun_credentials_never_mix_incomplete_pairs(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_aliyun_pnvs_does_not_fallback_to_other_key_names(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AccessKeyID", raising=False)
-    monkeypatch.setenv("AccessKeySecret", "orphaned-secret")
-    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "complete-id")
-    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "complete-secret")
+    monkeypatch.delenv("AccessKeySecret", raising=False)
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "ignored-id")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "ignored-secret")
 
-    assert _aliyun_credentials() == ("complete-id", "complete-secret")
+    assert _aliyun_credentials() == (None, None)
 
 
 @pytest.mark.parametrize("provider_code", ["BUSINESS_LIMIT_CONTROL", "FREQUENCY_FAIL"])

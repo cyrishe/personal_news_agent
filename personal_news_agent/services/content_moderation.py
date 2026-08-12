@@ -43,19 +43,9 @@ class TextModerationPlusService:
         discriminative_model_dir: str | Path | None = None,
         discriminative_threshold: float | None = None,
     ):
-        # 优先使用显式传参；没有传参时，读取本地环境变量，兼容项目里已有的阿里云密钥命名。
-        self.access_key_id = (
-            access_key_id
-            or os.getenv("ALIYUN_ACCESS_KEY_ID")
-            or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID")
-            or os.getenv("AccessKeyID")
-        )
-        self.access_key_secret = (
-            access_key_secret
-            or os.getenv("ALIYUN_ACCESS_KEY_SECRET")
-            or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
-            or os.getenv("AccessKeySecret")
-        )
+        # 显式传参优先；环境只认项目现有 .env 的唯一命名，不做别名猜测。
+        self.access_key_id = access_key_id or os.getenv("AccessKeyID")
+        self.access_key_secret = access_key_secret or os.getenv("AccessKeySecret")
         # TextModerationPlus 调试成功时用的是 green-cip.cn-shanghai.aliyuncs.com，可通过环境变量覆盖。
         self.endpoint = endpoint or os.getenv("ALIYUN_CONTENT_MODERATION_ENDPOINT", "green-cip.cn-shanghai.aliyuncs.com")
         # 用户输入和模型输出分别使用不同审核服务类型，必要时可以用环境变量分别覆盖。

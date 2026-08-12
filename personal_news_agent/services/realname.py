@@ -87,7 +87,7 @@ class RealNameVerificationService:
 
     def _ensure_aliyun_configured(self) -> None:
         if not (self.settings.aliyun_access_key_id and self.settings.aliyun_access_key_secret):
-            raise RealNameVerificationError("aliyun provider requires ALIYUN_ACCESS_KEY_ID/ALIYUN_ACCESS_KEY_SECRET or ALIBABA_CLOUD_ACCESS_KEY_ID/ALIBABA_CLOUD_ACCESS_KEY_SECRET")
+            raise RealNameVerificationError("aliyun provider requires AccessKeyID/AccessKeySecret")
 
     def _ensure_tencent_configured(self) -> None:
         if not (self.settings.tencent_secret_id and self.settings.tencent_secret_key):

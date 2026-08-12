@@ -27,20 +27,7 @@ EXT_ROOT = Path(os.getenv("PERSONAL_NEWS_EXT_ROOT", "/Volumes/ext"))
 
 
 def _aliyun_credentials() -> tuple[str | None, str | None]:
-    # This project historically used AccessKeyID/AccessKeySecret, and that is
-    # the credential pair already authorized for PNVS in existing deployments.
-    # Select complete pairs atomically so an ID from one convention is never
-    # combined with a secret from another convention.
-    for key_id_name, key_secret_name in (
-        ("AccessKeyID", "AccessKeySecret"),
-        ("ALIYUN_ACCESS_KEY_ID", "ALIYUN_ACCESS_KEY_SECRET"),
-        ("ALIBABA_CLOUD_ACCESS_KEY_ID", "ALIBABA_CLOUD_ACCESS_KEY_SECRET"),
-    ):
-        access_key_id = os.getenv(key_id_name)
-        access_key_secret = os.getenv(key_secret_name)
-        if access_key_id and access_key_secret:
-            return access_key_id, access_key_secret
-    return None, None
+    return os.getenv("AccessKeyID"), os.getenv("AccessKeySecret")
 
 
 def _aliyun_credentials_configured() -> bool:
