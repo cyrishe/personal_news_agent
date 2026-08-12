@@ -6956,3 +6956,54 @@ body.console-shell {
     justify-content: flex-start;
   }
 }
+
+/* Desktop conversation workspace: give the answer and execution trail more
+   room without changing any chat behavior or API contracts. */
+@media (min-width: 1381px) {
+  .console-shell .news-console {
+    gap: 14px;
+    grid-template-columns: 248px minmax(0, 1fr) 280px;
+    max-width: 2048px;
+  }
+
+  .console-shell .main-dialog {
+    height: calc(100vh - 92px);
+    padding: 16px 18px;
+  }
+
+  .console-shell .conversation-panel .hero-messages {
+    padding: 12px;
+  }
+
+  .console-shell .research-trace {
+    align-items: stretch;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 12px 12px;
+    scroll-snap-type: x proximity;
+  }
+
+  .console-shell .trace-step {
+    background: rgba(15, 42, 63, 0.72);
+    border: 1px solid rgba(125, 211, 252, 0.14);
+    border-radius: 10px;
+    flex: 1 0 190px;
+    grid-template-columns: 12px minmax(0, 1fr);
+    max-width: 270px;
+    padding: 9px 10px;
+    scroll-snap-align: start;
+  }
+
+  .console-shell .trace-step:not(:last-child)::after {
+    display: none;
+  }
+
+  .console-shell .trace-step p {
+    display: -webkit-box;
+    line-clamp: 2;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}

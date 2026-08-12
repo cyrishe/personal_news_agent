@@ -142,9 +142,18 @@ document.querySelector("#chatForm")?.addEventListener("submit", async (event) =>
   const input = document.querySelector("#message");
   const message = input.value.trim();
   if (!message) return;
-  await handleAssistantInput(message);
-  await loadTopics();
   input.value = "";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  try {
+    await handleAssistantInput(message);
+  } catch (error) {
+    if (!input.value) {
+      input.value = message;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    throw error;
+  }
+  await loadTopics();
 });
 
 document.querySelector("#taskForm")?.addEventListener("submit", async (event) => {

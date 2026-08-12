@@ -1,5 +1,5 @@
 (function () {
-  const assetVersion = new URLSearchParams(window.location.search).get("v") || "20260812-topic-rail-1";
+  const assetVersion = new URLSearchParams(window.location.search).get("v") || "20260812-chat-workspace-1";
   const mobileQuery = window.matchMedia("(max-width: 760px)");
   const mode = mobileQuery.matches ? "mobile" : "web";
   const template = document.querySelector(`#${mode}Template`);

@@ -1026,8 +1026,8 @@ def test_check_skill_is_not_registered_or_shown_in_command_menu():
     assert 'name: "check"' not in shared_source
     assert "可执行：/check" not in web_source
     assert "可执行：/check" not in mobile_source
-    assert "20260812-topic-rail-1" in home_source
-    assert "styles.css?v=20260812-topic-rail-1" in home_html
+    assert "20260812-chat-workspace-1" in home_source
+    assert "styles.css?v=20260812-chat-workspace-1" in home_html
     assert "shared.js?v=20260810-phone-controls-2" in mobile_html
 
 

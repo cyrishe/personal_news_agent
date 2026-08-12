@@ -69,7 +69,7 @@ def test_shared_client_preserves_pna_prefix_for_api_requests():
     auth = (STATIC_DIR / "auth.html").read_text(encoding="utf-8")
     auth_script = (STATIC_DIR / "auth.js").read_text(encoding="utf-8")
     mobile_script = (STATIC_DIR / "mobile.js").read_text(encoding="utf-8")
-    assert "home.js?v=20260812-topic-rail-1" in home
+    assert "home.js?v=20260812-chat-workspace-1" in home
     assert "shared.js?v=20260810-phone-controls-2" in auth
     assert "ensureRegistrationChallenge(form, status)" in auth_script
     assert "ensureRegistrationChallenge(form, status)" in mobile_script
@@ -87,7 +87,7 @@ def test_server_templates_keep_nginx_and_web_port_aligned():
 
 def test_html_routes_disable_cache_and_expose_frontend_revision():
     routes = (ROOT / "personal_news_agent" / "api" / "routes.py").read_text(encoding="utf-8")
-    assert 'FRONTEND_REVISION = "20260812-topic-rail-1"' in routes
+    assert 'FRONTEND_REVISION = "20260812-chat-workspace-1"' in routes
     assert '"Cache-Control": "no-store, max-age=0"' in routes
     assert '"frontend_revision": FRONTEND_REVISION' in routes
 
@@ -95,7 +95,7 @@ def test_html_routes_disable_cache_and_expose_frontend_revision():
 def test_console_theme_has_dark_drawers_readable_content_and_responsive_rails():
     styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
     home = (STATIC_DIR / "home.html").read_text(encoding="utf-8")
-    assert "styles.css?v=20260812-topic-rail-1" in home
+    assert "styles.css?v=20260812-chat-workspace-1" in home
     assert ".console-shell .agent-drawer" in styles
     assert "background: rgba(10, 28, 45, 0.96)" in styles
     assert ".console-shell .assistant-markdown h3" in styles
@@ -197,6 +197,29 @@ def test_chat_web_search_is_enabled_by_default_but_remains_user_controllable():
     assert "savedWebSearchPreference === null ? true" in shared
     assert "localStorage.setItem(webSearchPreferenceKey()" in shared
     assert home.count("data-web-search-toggle checked") == 2
+
+
+def test_desktop_chat_clears_submitted_text_and_uses_horizontal_execution_trace():
+    web = (STATIC_DIR / "web.js").read_text(encoding="utf-8")
+    styles = (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
+
+    submit_handler = web.split('document.querySelector("#chatForm")', 1)[1].split(
+        'document.querySelector("#taskForm")', 1
+    )[0]
+    assert submit_handler.index('input.value = "";') < submit_handler.index(
+        "await handleAssistantInput(message)"
+    )
+    assert "if (!input.value)" in submit_handler
+    assert submit_handler.index("await handleAssistantInput(message)") < submit_handler.index(
+        "await loadTopics()"
+    )
+
+    desktop_workspace = styles.split("@media (min-width: 1381px)", 1)[1]
+    assert "grid-template-columns: 248px minmax(0, 1fr) 280px" in desktop_workspace
+    assert "height: calc(100vh - 92px)" in desktop_workspace
+    assert ".console-shell .research-trace" in desktop_workspace
+    assert "display: flex" in desktop_workspace
+    assert "overflow-x: auto" in desktop_workspace
 
 
 def test_chat_model_selector_is_logical_and_sent_with_each_chat_request():
