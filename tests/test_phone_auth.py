@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from personal_news_agent.config import Settings
+from personal_news_agent.config import Settings, _aliyun_credentials
 from personal_news_agent.services.auth import AuthError, AuthService
 from personal_news_agent.services.phone_verification import PhoneVerificationError, PhoneVerificationService
 from personal_news_agent.services.store import NewsStore
@@ -234,6 +234,24 @@ def test_aliyun_phone_registration_reuses_provider_credentials_for_internal_hash
     assert status["provider"] == "aliyun_pnvs"
     assert status["secret_configured"] is True
     assert status["provider_configured"] is True
+
+
+def test_existing_access_key_pair_has_priority_for_aliyun_pnvs(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AccessKeyID", "pnvs-authorized-id")
+    monkeypatch.setenv("AccessKeySecret", "pnvs-authorized-secret")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "other-id")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "other-secret")
+
+    assert _aliyun_credentials() == ("pnvs-authorized-id", "pnvs-authorized-secret")
+
+
+def test_aliyun_credentials_never_mix_incomplete_pairs(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("AccessKeyID", raising=False)
+    monkeypatch.setenv("AccessKeySecret", "orphaned-secret")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_ID", "complete-id")
+    monkeypatch.setenv("ALIYUN_ACCESS_KEY_SECRET", "complete-secret")
+
+    assert _aliyun_credentials() == ("complete-id", "complete-secret")
 
 
 @pytest.mark.parametrize("provider_code", ["BUSINESS_LIMIT_CONTROL", "FREQUENCY_FAIL"])

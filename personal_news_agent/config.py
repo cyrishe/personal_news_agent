@@ -26,17 +26,25 @@ _load_dotenv(BASE_DIR / ".env")
 EXT_ROOT = Path(os.getenv("PERSONAL_NEWS_EXT_ROOT", "/Volumes/ext"))
 
 
+def _aliyun_credentials() -> tuple[str | None, str | None]:
+    # This project historically used AccessKeyID/AccessKeySecret, and that is
+    # the credential pair already authorized for PNVS in existing deployments.
+    # Select complete pairs atomically so an ID from one convention is never
+    # combined with a secret from another convention.
+    for key_id_name, key_secret_name in (
+        ("AccessKeyID", "AccessKeySecret"),
+        ("ALIYUN_ACCESS_KEY_ID", "ALIYUN_ACCESS_KEY_SECRET"),
+        ("ALIBABA_CLOUD_ACCESS_KEY_ID", "ALIBABA_CLOUD_ACCESS_KEY_SECRET"),
+    ):
+        access_key_id = os.getenv(key_id_name)
+        access_key_secret = os.getenv(key_secret_name)
+        if access_key_id and access_key_secret:
+            return access_key_id, access_key_secret
+    return None, None
+
+
 def _aliyun_credentials_configured() -> bool:
-    access_key_id = (
-        os.getenv("ALIYUN_ACCESS_KEY_ID")
-        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID")
-        or os.getenv("AccessKeyID")
-    )
-    access_key_secret = (
-        os.getenv("ALIYUN_ACCESS_KEY_SECRET")
-        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
-        or os.getenv("AccessKeySecret")
-    )
+    access_key_id, access_key_secret = _aliyun_credentials()
     return bool(access_key_id and access_key_secret)
 
 
@@ -188,16 +196,8 @@ class Settings:
     )
     realname_provider: str = os.getenv("PNA_REALNAME_PROVIDER", "mock")
     realname_mock_enabled: bool = os.getenv("PNA_REALNAME_MOCK_ENABLED", "1") == "1"
-    aliyun_access_key_id: str | None = (
-        os.getenv("ALIYUN_ACCESS_KEY_ID")
-        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID")
-        or os.getenv("AccessKeyID")
-    )
-    aliyun_access_key_secret: str | None = (
-        os.getenv("ALIYUN_ACCESS_KEY_SECRET")
-        or os.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
-        or os.getenv("AccessKeySecret")
-    )
+    aliyun_access_key_id: str | None = _aliyun_credentials()[0]
+    aliyun_access_key_secret: str | None = _aliyun_credentials()[1]
     aliyun_cloudauth_endpoint: str = os.getenv("ALIYUN_CLOUDAUTH_ENDPOINT", "cloudauth.aliyuncs.com")
     aliyun_region_id: str = os.getenv("ALIYUN_REGION_ID", "cn-beijing")
     tencent_app_id: str | None = os.getenv("TENCENT_APP_ID") or os.getenv("APPID")
