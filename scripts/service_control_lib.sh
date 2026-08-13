@@ -124,10 +124,16 @@ pna_preflight() {
 
   if [[ ! -f "${PNA_PROJECT_DIR}/.env" ]]; then
     echo "WARNING: ${PNA_PROJECT_DIR}/.env is missing; application defaults will be used." >&2
+  elif grep -Eq '^[[:space:]]*(export[[:space:]]+)?(LLM_|ANTHROPIC_|PNA_CC_RUNTIME_(BASE_URL|AUTH_TOKEN|API_KEY|MODEL)|PNA_LOCAL_AGENT_(PROVIDER|BASE_URL|API_KEY|DEFAULT_MODEL|TIMEOUT_SECONDS))' "${PNA_PROJECT_DIR}/.env"; then
+    echo "Preflight failed: ${PNA_PROJECT_DIR}/.env contains retired model keys; use only the fixed PNA_LLM_* contract." >&2
+    return 1
   fi
   local runtime_env_file="${PNA_RUNTIME_ENV_FILE:-${PNA_PROJECT_DIR}/.env.ext}"
   if [[ ! -r "${runtime_env_file}" ]]; then
     echo "WARNING: ${runtime_env_file} is missing; launcher defaults will be used." >&2
+  elif grep -Eq '^[[:space:]]*(export[[:space:]]+)?(PNA_LLM_|LLM_|PNA_CC_RUNTIME_|ANTHROPIC_|PNA_LOCAL_AGENT_)' "${runtime_env_file}"; then
+    echo "Preflight failed: model configuration belongs in ${PNA_PROJECT_DIR}/.env, not ${runtime_env_file}." >&2
+    return 1
   fi
   if [[ ! -f "${PNA_PROJECT_DIR}/sources.yaml" ]]; then
     echo "Missing source registry: ${PNA_PROJECT_DIR}/sources.yaml" >&2
@@ -139,6 +145,7 @@ pna_preflight() {
   "${python_bin}" -m pip check
   "${python_bin}" - <<'PY'
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import fastapi
 import starlette
@@ -155,10 +162,30 @@ if settings.phone_challenge_provider.strip().lower() == "aliyun_pnvs":
 fastapi.FastAPI(title="Personal News Agent preflight")
 registry = SourceRegistryService(Path("sources.yaml"))
 registry.load()
+llm_url = (settings.llm_endpoint or "").rstrip("/")
+llm_host = (urlsplit(llm_url).hostname or "").lower()
+cc_url = settings.effective_cc_runtime_base_url.rstrip("/")
+cc_host = (urlsplit(cc_url).hostname or "").lower()
+cc_summary = f"CC host {cc_host or 'not configured'}"
+if llm_url != "https://api.deepseek.com":
+    raise SystemExit(
+        "Preflight failed: PNA_LLM_ENDPOINT must be exactly https://api.deepseek.com."
+    )
+if not settings.llm_key:
+    raise SystemExit("Preflight failed: DeepSeek requires PNA_LLM_KEY.")
+if settings.cc_runtime_enabled:
+    if cc_url != "https://api.deepseek.com/anthropic":
+        raise SystemExit(
+            "Preflight failed: DeepSeek CC Runtime endpoint derivation is invalid."
+        )
+    if settings.effective_cc_runtime_auth_token != settings.llm_key:
+        raise SystemExit("Preflight failed: DeepSeek CC Runtime must reuse PNA_LLM_KEY.")
+    cc_summary = "DeepSeek shared PNA_LLM_KEY"
 print(
     "Preflight OK: "
     f"FastAPI {fastapi.__version__}, Starlette {starlette.__version__}, "
     f"{len(registry.all_sources())} sources loaded, "
+    f"LLM host {llm_host or 'not configured'}, runtime model {settings.effective_runtime_model}, {cc_summary}, "
     f"phone provider {settings.phone_challenge_provider}, "
     "phone credentials AccessKeyID/AccessKeySecret."
 )

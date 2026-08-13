@@ -14,6 +14,10 @@ from claude_code_backend.models import (
 )
 from claude_code_backend.provider import LocalModelClient, LocalModelError, build_default_client
 from claude_code_backend.session_store import JsonFileSessionStore, SessionStore
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from personal_news_agent.config import Settings
 
 
 class LocalAgentService:
@@ -26,6 +30,19 @@ class LocalAgentService:
         self.config = config
         self.store = store or JsonFileSessionStore(config.session_store_path)
         self.client = client or build_default_client(config)
+
+    @classmethod
+    def from_app_settings(cls, app_settings: Settings) -> "LocalAgentService":
+        """Build the compatibility agent from the application's one LLM contract."""
+        config = LocalAgentSettings(
+            provider_name="deepseek",
+            base_url=app_settings.llm_endpoint or "https://api.deepseek.com",
+            default_model_key=app_settings.llm_default_model,
+            runtime_model=app_settings.llm_model,
+            api_key=app_settings.llm_key,
+            timeout_seconds=app_settings.llm_timeout_seconds,
+        )
+        return cls(config=config)
 
     def create_session(self, payload: SessionCreateRequest) -> SessionState:
         session = SessionState(

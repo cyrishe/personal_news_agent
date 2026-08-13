@@ -77,6 +77,40 @@ def test_preflight_does_not_require_systemd(tmp_path: Path):
     assert "Preflight OK" in result.stdout
 
 
+def test_preflight_rejects_model_configuration_in_runtime_env(tmp_path: Path):
+    env_file = tmp_path / "runtime.env"
+    env_file.write_text(
+        "export PERSONAL_NEWS_VENV=/tmp/not-used\n"
+        "PNA_CC_RUNTIME_AUTH_TOKEN=stale-key\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [str(ROOT / "start.sh"), "preflight"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PNA_RUNTIME_ENV_FILE": str(env_file)},
+    )
+
+    assert result.returncode == 1
+    assert "model configuration belongs" in result.stderr
+
+
+def test_preflight_script_rejects_retired_model_keys_in_root_env():
+    source = (ROOT / "scripts" / "service_control_lib.sh").read_text(encoding="utf-8")
+
+    for retired_key in (
+        "LLM_",
+        "ANTHROPIC_",
+        "PNA_CC_RUNTIME_(BASE_URL|AUTH_TOKEN|API_KEY|MODEL)",
+        "PNA_LOCAL_AGENT_(PROVIDER|BASE_URL|API_KEY|DEFAULT_MODEL|TIMEOUT_SECONDS)",
+    ):
+        assert retired_key in source
+    assert "contains retired model keys" in source
+
+
 def test_unknown_command_is_rejected_before_systemd_lookup():
     result = subprocess.run(
         [str(ROOT / "start.sh"), "not-a-command"],

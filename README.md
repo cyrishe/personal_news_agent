@@ -473,16 +473,27 @@ curl http://127.0.0.1:8000/api/news/search/backend
 该实验分支默认启用 Runtime；缺少 SDK 或凭据时不会发起调用，而是自动使用原流水线。可在 `.env` 显式配置或用 `PNA_CC_RUNTIME_ENABLED=0` 关闭：
 
 ```bash
+PNA_LLM_ENDPOINT=https://api.deepseek.com
+PNA_LLM_KEY=<DeepSeek API Key，普通 LLM 与 CC 共用且只配置这一处>
+PNA_LLM_MODEL=deepseek-v4-flash
+PNA_LLM_DEFAULT_MODEL=yuanrong-personal-assistant
+PNA_LLM_TIMEOUT_SECONDS=120
 PNA_CC_RUNTIME_ENABLED=1
-PNA_CC_RUNTIME_BASE_URL=https://dashscope.aliyuncs.com/apps/anthropic
-PNA_CC_RUNTIME_AUTH_TOKEN=...
-PNA_CC_RUNTIME_MODEL=deepseek-v4-flash
+PNA_CC_RUNTIME_EFFORT=max
 PNA_CC_RUNTIME_MAX_TURNS=6
+PNA_CC_RUNTIME_MAX_BUDGET_USD=
 PNA_CC_RUNTIME_TIMEOUT_SECONDS=150
+PNA_CC_RUNTIME_ALLOW_EXISTING_LOGIN=0
 PNA_CC_RUNTIME_BUILTIN_WEB_SEARCH=1
+PNA_CC_RUNTIME_CONFIG_DIR=data/cc_runtime
+PNA_LOCAL_AGENT_MAX_HISTORY=30
+PNA_LOCAL_AGENT_TEMPERATURE=0.2
+PNA_LOCAL_AGENT_SESSION_STORE=data/local_agent_sessions.json
 ```
 
-当 `PNA_LLM_ENDPOINT` 使用 DashScope 时，Runtime 默认使用对应的 Anthropic 兼容端点，并可安全复用 `PNA_LLM_KEY`；其他 OpenAI-compatible 端点不会被自动当成 Anthropic Runtime 端点。Runtime SDK 缺失、未配置、超时、报错或没有检索到证据时，服务会回落到原研究流水线。
+普通 LLM、CC Runtime 和兼容 Local Agent 不是三套模型配置：三条路径统一读取 `PNA_LLM_ENDPOINT`、`PNA_LLM_KEY`、`PNA_LLM_MODEL` 和 `PNA_LLM_TIMEOUT_SECONDS`。系统固定推导 CC 地址 `https://api.deepseek.com/anthropic`；`PNA_LLM_DEFAULT_MODEL` 只是前端默认逻辑角色，不改变真实运行模型。不要配置 `LLM_*`、`ANTHROPIC_*`、`PNA_CC_RUNTIME_BASE_URL`、`PNA_CC_RUNTIME_AUTH_TOKEN`、`PNA_CC_RUNTIME_API_KEY`、`PNA_CC_RUNTIME_MODEL` 或 `PNA_LOCAL_AGENT_PROVIDER/BASE_URL/API_KEY/DEFAULT_MODEL/TIMEOUT_SECONDS`。
+
+模型 endpoint、模型名和密钥只允许写在项目根目录 `.env`；`.env.ext` 只放部署路径、虚拟环境、端口和数据库位置。当前 provider 固定为 DeepSeek，`PNA_LLM_ENDPOINT` 必须保持 `https://api.deepseek.com`。`./start.sh preflight` 会拒绝 `.env.ext` 中的模型配置、根目录 `.env` 中的旧配置名以及非官网 endpoint，避免普通 LLM 与 CC 再次发生配置漂移。
 
 ## 常用 API
 

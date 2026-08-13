@@ -209,7 +209,8 @@ def test_desktop_chat_clears_submitted_text_and_uses_horizontal_execution_trace(
     assert submit_handler.index('input.value = "";') < submit_handler.index(
         "await handleAssistantInput(message)"
     )
-    assert "if (!input.value)" in submit_handler
+    assert "input.value = message" not in submit_handler
+    assert "await handleAssistantInput(message)" in submit_handler
     assert submit_handler.index("await handleAssistantInput(message)") < submit_handler.index(
         "await loadTopics()"
     )
@@ -220,6 +221,25 @@ def test_desktop_chat_clears_submitted_text_and_uses_horizontal_execution_trace(
     assert ".console-shell .research-trace" in desktop_workspace
     assert "display: flex" in desktop_workspace
     assert "overflow-x: auto" in desktop_workspace
+
+
+def test_chat_stream_fallback_has_timeout_and_explicit_retry_without_restoring_draft():
+    shared = (STATIC_DIR / "shared.js").read_text(encoding="utf-8")
+    web = (STATIC_DIR / "web.js").read_text(encoding="utf-8")
+
+    fallback = shared.split("async function sendChatIntoTurn", 1)[1].split(
+        "function focusFromChatMessage", 1
+    )[0]
+    assert "timeoutMs: 180_000" in fallback
+    assert "本轮问题已经提交，不需要重新输入" in fallback
+    assert "chatTransportErrorHtml(reason, message)" in fallback
+    assert 'data-chat-retry="${escapeAttr(retryMessage)}"' in shared
+    assert "流式响应在生成最终结果前结束" in shared
+
+    submit_handler = web.split('document.querySelector("#chatForm")', 1)[1].split(
+        'document.querySelector("#taskForm")', 1
+    )[0]
+    assert "input.value = message" not in submit_handler
 
 
 def test_chat_model_selector_is_logical_and_sent_with_each_chat_request():

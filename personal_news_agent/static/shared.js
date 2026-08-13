@@ -495,23 +495,54 @@ async function sendChatIntoTurn(message, assistantNode, target = "#messages") {
     allow_web_search: Boolean(chatContext.allow_web_search),
     model_key: chatContext.model_key || getChatModelKey(),
   };
+  let streamError = null;
   try {
     const streamed = await streamChat(payload, assistantNode, targetNode);
     if (streamed) return streamed;
   } catch (error) {
-    assistantNode.innerHTML = `<div class="trace-loading">流式连接中断，切换为普通请求...</div>`;
+    streamError = error;
+    assistantNode.innerHTML = chatTransportStatusHtml(
+      "流式连接中断，正在继续等待完整结果…",
+      "本轮问题已经提交，不需要重新输入。",
+    );
+    scrollChatToBottom(targetNode, "auto");
   }
-  const data = await request("/api/chat", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  conversationId = data.conversation_id;
-  localStorage.setItem("pna_conversation_id", conversationId);
-  setAssistantResponseHtml(assistantNode, chatResponseHtml(data));
-  scrollChatToBottom(targetNode);
-  syncChatResponseContext(data);
-  await notifyConversationHistoryChanged();
-  return data;
+  try {
+    const data = await request("/api/chat", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      timeoutMs: 180_000,
+      timeoutMessage: "生成结果超时，请稍后重新发送。",
+    });
+    conversationId = data.conversation_id;
+    localStorage.setItem("pna_conversation_id", conversationId);
+    setAssistantResponseHtml(assistantNode, chatResponseHtml(data));
+    scrollChatToBottom(targetNode);
+    syncChatResponseContext(data);
+    await notifyConversationHistoryChanged();
+    return data;
+  } catch (error) {
+    const reason = error?.message || streamError?.message || "请求失败，请稍后重试。";
+    setAssistantResponseHtml(assistantNode, chatTransportErrorHtml(reason, message));
+    scrollChatToBottom(targetNode, "auto");
+    return null;
+  }
+}
+
+function chatTransportStatusHtml(title, detail = "") {
+  return `${assistantIdentityHtml("连接恢复中")}
+    <section class="chat-transport-state" role="status" aria-live="polite">
+      <strong>${escapeHtml(title)}</strong>
+      ${detail ? `<p>${escapeHtml(detail)}</p>` : ""}
+    </section>`;
+}
+
+function chatTransportErrorHtml(message, retryMessage) {
+  return `<section class="chat-transport-state chat-transport-error" role="alert">
+    <strong>本轮未能完成</strong>
+    <p>${escapeHtml(message)}</p>
+    <button type="button" class="secondary-button" data-chat-retry="${escapeAttr(retryMessage)}">重新发送</button>
+  </section>`;
 }
 
 function focusFromChatMessage(message) {
@@ -648,7 +679,8 @@ async function streamChat(payload, assistantNode, targetNode) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!response.ok || !response.body) return null;
+  if (!response.ok) throw new Error(await formatApiError(response));
+  if (!response.body) throw new Error("浏览器未获得流式响应。 ");
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -692,7 +724,7 @@ async function streamChat(payload, assistantNode, targetNode) {
       scrollChatToBottom(targetNode, "auto");
     }
   }
-  return null;
+  throw new Error("流式响应在生成最终结果前结束。");
 }
 
 function scrollChatToBottom(targetNode, behavior = "smooth") {
@@ -776,6 +808,16 @@ function turnActionsHtml(role) {
 }
 
 document.addEventListener("click", async (event) => {
+  const retryButton = event.target.closest("[data-chat-retry]");
+  if (retryButton) {
+    const turn = retryButton.closest(".chat-turn");
+    const message = retryButton.dataset.chatRetry?.trim() || "";
+    if (!turn || !message || retryButton.disabled) return;
+    retryButton.disabled = true;
+    turn.innerHTML = chatTransportStatusHtml("正在重新发送…", "输入框仍可继续编辑下一条问题。");
+    await sendChatIntoTurn(message, turn);
+    return;
+  }
   const button = event.target.closest("[data-turn-action]");
   if (!button) return;
   const turn = button.closest(".chat-turn");

@@ -47,7 +47,7 @@ class OnboardingService:
             "categories": implemented + future,
             "default_categories": ["tech", "game", "auto"],
             "output_styles": OUTPUT_STYLE_OPTIONS,
-            "models": public_model_options(),
+            "models": public_model_options(self.settings.llm_model),
             "default_model": DEFAULT_LOGICAL_MODEL,
         }
 

@@ -26,6 +26,14 @@ _load_dotenv(BASE_DIR / ".env")
 EXT_ROOT = Path(os.getenv("PERSONAL_NEWS_EXT_ROOT", "/Volumes/ext"))
 
 
+def _llm_endpoint() -> str | None:
+    return os.getenv("PNA_LLM_ENDPOINT") or "https://api.deepseek.com"
+
+
+def _llm_key() -> str | None:
+    return os.getenv("PNA_LLM_KEY") or None
+
+
 def _aliyun_credentials() -> tuple[str | None, str | None]:
     return os.getenv("AccessKeyID"), os.getenv("AccessKeySecret")
 
@@ -100,33 +108,12 @@ class Settings:
         "PNA_JUHE_FLIGHT_ENDPOINT",
         "https://v.juhe.cn/flight_dynamic/query",
     )
-    llm_endpoint: str | None = os.getenv("PNA_LLM_ENDPOINT") or os.getenv("LLM_ENDPOINT")
-    llm_key: str | None = os.getenv("PNA_LLM_KEY") or os.getenv("LLM_KEY")
+    llm_endpoint: str | None = field(default_factory=_llm_endpoint)
+    llm_key: str | None = field(default_factory=_llm_key, repr=False)
+    llm_model: str = os.getenv("PNA_LLM_MODEL", "deepseek-v4-flash")
     llm_default_model: str = os.getenv("PNA_LLM_DEFAULT_MODEL", "yuanrong-personal-assistant")
-    llm_timeout_seconds: int = int(os.getenv("PNA_LLM_TIMEOUT_SECONDS") or os.getenv("LLM_CLIENT_TIMEOUT_SECONDS", "120"))
+    llm_timeout_seconds: int = int(os.getenv("PNA_LLM_TIMEOUT_SECONDS", "120"))
     cc_runtime_enabled: bool = os.getenv("PNA_CC_RUNTIME_ENABLED", "1") == "1"
-    cc_runtime_base_url: str = os.getenv(
-        "PNA_CC_RUNTIME_BASE_URL",
-        (
-            "https://dashscope.aliyuncs.com/apps/anthropic"
-            if "dashscope.aliyuncs.com" in (os.getenv("PNA_LLM_ENDPOINT") or os.getenv("LLM_ENDPOINT") or "")
-            else ""
-        ),
-    ).rstrip("/")
-    cc_runtime_auth_token: str | None = field(
-        default=(
-            os.getenv("PNA_CC_RUNTIME_AUTH_TOKEN")
-            or (
-                (os.getenv("PNA_LLM_KEY") or os.getenv("LLM_KEY"))
-                if "dashscope.aliyuncs.com"
-                in (os.getenv("PNA_LLM_ENDPOINT") or os.getenv("LLM_ENDPOINT") or "")
-                else None
-            )
-        ),
-        repr=False,
-    )
-    cc_runtime_api_key: str | None = field(default=os.getenv("PNA_CC_RUNTIME_API_KEY"), repr=False)
-    cc_runtime_model: str = os.getenv("PNA_CC_RUNTIME_MODEL", "deepseek-v4-flash")
     cc_runtime_effort: str | None = os.getenv("PNA_CC_RUNTIME_EFFORT") or None
     cc_runtime_max_turns: int = int(os.getenv("PNA_CC_RUNTIME_MAX_TURNS", "6"))
     cc_runtime_max_budget_usd: float | None = (
@@ -231,6 +218,26 @@ class Settings:
         if not self.database_url.startswith("sqlite:///"):
             raise ValueError("MVP storage expects sqlite:/// database URL")
         return Path(self.database_url.removeprefix("sqlite:///"))
+
+    @property
+    def effective_cc_runtime_base_url(self) -> str:
+        """CC is pinned to DeepSeek's Anthropic-compatible endpoint."""
+        return "https://api.deepseek.com/anthropic"
+
+    @property
+    def effective_cc_runtime_auth_token(self) -> str | None:
+        """CC and ordinary LLM calls always share PNA_LLM_KEY."""
+        return self.llm_key
+
+    @property
+    def effective_cc_runtime_api_key(self) -> str | None:
+        """There is no independent Anthropic key in the pinned provider contract."""
+        return None
+
+    @property
+    def effective_runtime_model(self) -> str:
+        """All model-backed paths use the application's one provider model."""
+        return self.llm_model
 
 
 settings = Settings()

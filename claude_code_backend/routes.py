@@ -5,7 +5,6 @@ import json
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from claude_code_backend.config import settings
 from claude_code_backend.model_config import public_model_options
 from claude_code_backend.models import (
     ChatRequest,
@@ -22,16 +21,17 @@ from claude_code_backend.service import LocalAgentService
 def create_local_agent_router(service: LocalAgentService | None = None) -> APIRouter:
     router = APIRouter(prefix="/api/local-agent", tags=["local-agent"])
     service = service or LocalAgentService()
+    service_settings = service.config
 
     @router.get("/health", response_model=HealthResponse)
     async def health() -> HealthResponse:
         return HealthResponse(
             status="ok",
-            enabled=settings.enabled,
-            provider=settings.provider_name,
-            default_model=settings.default_model_key,
-            base_url=("claude-code-cli" if settings.provider_name == "claude-code-cli" else settings.base_url),
-            model_options=public_model_options(),
+            enabled=service_settings.enabled,
+            provider=service_settings.provider_name,
+            default_model=service_settings.default_model_key,
+            base_url=service_settings.base_url,
+            model_options=public_model_options(service_settings.runtime_model),
             routes=[
                 "GET /api/local-agent/health",
                 "GET /api/local-agent/models",
@@ -47,10 +47,10 @@ def create_local_agent_router(service: LocalAgentService | None = None) -> APIRo
     @router.get("/models")
     async def models() -> dict:
         return {
-            "items": public_model_options(),
-            "default_model": settings.default_model_key,
-            "endpoint_configured": bool(settings.base_url),
-            "local_only": settings.provider_name != "claude-code-cli",
+            "items": public_model_options(service_settings.runtime_model),
+            "default_model": service_settings.default_model_key,
+            "endpoint_configured": bool(service_settings.base_url),
+            "local_only": False,
         }
 
     @router.post("/sessions", response_model=SessionState)

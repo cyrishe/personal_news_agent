@@ -69,40 +69,23 @@ to locally installed models.
 ## Environment variables
 
 ```bash
-PNA_LOCAL_AGENT_ENABLED=1
-PNA_LOCAL_AGENT_PROVIDER=openai-compatible-local
-PNA_LOCAL_AGENT_BASE_URL=http://127.0.0.1:11434/v1
-PNA_LOCAL_AGENT_CHAT_PATH=/chat/completions
-PNA_LOCAL_AGENT_DEFAULT_MODEL=yuanrong-personal-assistant
-PNA_LOCAL_AGENT_API_KEY=
-PNA_LOCAL_AGENT_TIMEOUT_SECONDS=120
+PNA_LLM_ENDPOINT=https://api.deepseek.com
+PNA_LLM_KEY=<DeepSeek API Key>
+PNA_LLM_MODEL=deepseek-v4-flash
+PNA_LLM_DEFAULT_MODEL=yuanrong-personal-assistant
+PNA_LLM_TIMEOUT_SECONDS=120
 PNA_LOCAL_AGENT_MAX_HISTORY=30
 PNA_LOCAL_AGENT_TEMPERATURE=0.2
 PNA_LOCAL_AGENT_SESSION_STORE=.local_agent_sessions.json
 ```
 
-## Claude Code CLI mode
+The compatibility agent has no independent provider, endpoint, key, model, or
+timeout. It receives the application's `PNA_LLM_*` contract from the service
+factory so every model-backed path stays aligned.
 
-Install and authenticate Claude Code separately, then select the CLI provider:
-
-```bash
-PNA_LOCAL_AGENT_PROVIDER=claude-code-cli
-PNA_LOCAL_AGENT_WORKSPACE=/absolute/path/to/personal_news_agent
-PNA_CLAUDE_CODE_BINARY=claude
-PNA_CLAUDE_CODE_MODEL=sonnet
-PNA_CLAUDE_CODE_PERMISSION_MODE=plan
-PNA_CLAUDE_CODE_MAX_TURNS=6
-PNA_CLAUDE_CODE_MAX_BUDGET_USD=1.00
-```
-
-The safe default permission mode is `plan`. Change permissions only when the
-future integration explicitly needs file edits or command execution. The
-backend passes arguments directly to the executable without invoking a shell.
-
-Each backend session maps to a Claude Code session ID. The first request uses
-`--session-id`; later requests use `--resume`, allowing Claude Code to preserve
-its own conversation context while this scaffold keeps an application-readable
-JSON session record.
+The older independently configured Claude Code CLI provider is no longer part
+of the application contract. Agent orchestration is handled by CC Runtime, and
+all model-backed compatibility calls use the shared `PNA_LLM_*` provider.
 
 ## Context recording
 

@@ -615,9 +615,9 @@ def test_cc_runtime_options_expose_only_read_only_news_tools(services, tmp_path)
         search,
         Settings(
             cc_runtime_enabled=True,
-            cc_runtime_auth_token="test-only",
-            cc_runtime_base_url="https://dashscope.aliyuncs.com/apps/anthropic",
-            cc_runtime_model="deepseek-v4-flash",
+            llm_endpoint="https://api.deepseek.com",
+            llm_key="test-only",
+            llm_model="deepseek-v4-flash",
             cc_runtime_config_dir=tmp_path / "cc-runtime",
         ),
     )
@@ -694,6 +694,28 @@ def test_cc_runtime_options_expose_only_read_only_news_tools(services, tmp_path)
     assert no_local_options.allowed_tools == []
 
 
+def test_cc_runtime_deepseek_options_cannot_use_stale_separate_credentials(services, tmp_path):
+    _, store, search = services
+    runtime = CCRuntimeOrchestrator(
+        store,
+        search,
+        Settings(
+            llm_endpoint="https://api.deepseek.com",
+            llm_key="shared-deepseek-key",
+            llm_model="deepseek-v4-flash",
+            cc_runtime_enabled=True,
+            cc_runtime_config_dir=tmp_path / "cc-runtime-deepseek-policy",
+        ),
+    )
+    context = RuntimeSearchContext(store, search, ["tech"], None, allow_web_search=False)
+
+    options = runtime.build_options(context)
+
+    assert options.env["ANTHROPIC_BASE_URL"] == "https://api.deepseek.com/anthropic"
+    assert options.env["ANTHROPIC_AUTH_TOKEN"] == "shared-deepseek-key"
+    assert "ANTHROPIC_API_KEY" not in options.env
+
+
 def test_cc_runtime_product_identity_hides_internal_runtime_names():
     prompt = _system_prompt(web_enabled=True)
 
@@ -710,9 +732,9 @@ def test_cc_runtime_run_normalizes_sdk_result_without_changing_business_schema(s
         search,
         Settings(
             cc_runtime_enabled=True,
-            cc_runtime_auth_token="test-only",
-            cc_runtime_base_url="https://dashscope.aliyuncs.com/apps/anthropic",
-            cc_runtime_model="deepseek-v4-flash",
+            llm_endpoint="https://api.deepseek.com",
+            llm_key="test-only",
+            llm_model="deepseek-v4-flash",
             cc_runtime_config_dir=tmp_path / "cc-runtime-run",
         ),
         client_factory=FakeClaudeSDKClient,
@@ -742,9 +764,9 @@ def test_cc_runtime_retries_until_builtin_web_search_runs(services, tmp_path):
         search,
         Settings(
             cc_runtime_enabled=True,
-            cc_runtime_auth_token="test-only",
-            cc_runtime_base_url="https://dashscope.aliyuncs.com/apps/anthropic",
-            cc_runtime_model="deepseek-v4-flash",
+            llm_endpoint="https://api.deepseek.com",
+            llm_key="test-only",
+            llm_model="deepseek-v4-flash",
             cc_runtime_config_dir=tmp_path / "cc-runtime-required-web",
         ),
         client_factory=FakeWebRequiredClaudeSDKClient,

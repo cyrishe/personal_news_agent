@@ -144,15 +144,7 @@ document.querySelector("#chatForm")?.addEventListener("submit", async (event) =>
   if (!message) return;
   input.value = "";
   input.dispatchEvent(new Event("input", { bubbles: true }));
-  try {
-    await handleAssistantInput(message);
-  } catch (error) {
-    if (!input.value) {
-      input.value = message;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    throw error;
-  }
+  await handleAssistantInput(message);
   await loadTopics();
 });
 

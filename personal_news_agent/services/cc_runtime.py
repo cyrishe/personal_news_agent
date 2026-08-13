@@ -252,8 +252,8 @@ class CCRuntimeOrchestrator:
         sdk_ready = importlib.util.find_spec("claude_agent_sdk") is not None
         credentials_ready = bool(
             self.settings.cc_runtime_allow_existing_login
-            or self.settings.cc_runtime_auth_token
-            or self.settings.cc_runtime_api_key
+            or self.settings.effective_cc_runtime_auth_token
+            or self.settings.effective_cc_runtime_api_key
         )
         return bool(self.settings.cc_runtime_enabled and sdk_ready and credentials_ready)
 
@@ -438,7 +438,7 @@ class CCRuntimeOrchestrator:
                 "web_enabled": allow_web_search,
                 "web_configured": self.search_service.external_configured,
                 "logical_model": logical_model_key,
-                "runtime_model": self.settings.cc_runtime_model,
+                "runtime_model": self.settings.effective_runtime_model,
                 "skills": selected_skills,
                 "builtin_web_calls": builtin_web_calls,
                 "builtin_web_required": builtin_web_search_required,
@@ -580,20 +580,23 @@ class CCRuntimeOrchestrator:
             "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": os.getenv("CLAUDE_CODE_SUBPROCESS_ENV_SCRUB", "1"),
             "CLAUDE_CONFIG_DIR": str(config_dir),
         }
-        if self.settings.cc_runtime_base_url:
-            runtime_env["ANTHROPIC_BASE_URL"] = self.settings.cc_runtime_base_url
-        if self.settings.cc_runtime_auth_token:
-            runtime_env["ANTHROPIC_AUTH_TOKEN"] = self.settings.cc_runtime_auth_token
-        elif self.settings.cc_runtime_api_key:
-            runtime_env["ANTHROPIC_API_KEY"] = self.settings.cc_runtime_api_key
-        if self.settings.cc_runtime_base_url:
+        effective_base_url = self.settings.effective_cc_runtime_base_url
+        effective_auth_token = self.settings.effective_cc_runtime_auth_token
+        effective_api_key = self.settings.effective_cc_runtime_api_key
+        if effective_base_url:
+            runtime_env["ANTHROPIC_BASE_URL"] = effective_base_url
+        if effective_auth_token:
+            runtime_env["ANTHROPIC_AUTH_TOKEN"] = effective_auth_token
+        elif effective_api_key:
+            runtime_env["ANTHROPIC_API_KEY"] = effective_api_key
+        if effective_base_url:
             runtime_env.update(
                 {
-                    "ANTHROPIC_MODEL": self.settings.cc_runtime_model,
-                    "ANTHROPIC_DEFAULT_OPUS_MODEL": self.settings.cc_runtime_model,
-                    "ANTHROPIC_DEFAULT_SONNET_MODEL": self.settings.cc_runtime_model,
-                    "ANTHROPIC_DEFAULT_HAIKU_MODEL": self.settings.cc_runtime_model,
-                    "CLAUDE_CODE_SUBAGENT_MODEL": self.settings.cc_runtime_model,
+                    "ANTHROPIC_MODEL": self.settings.effective_runtime_model,
+                    "ANTHROPIC_DEFAULT_OPUS_MODEL": self.settings.effective_runtime_model,
+                    "ANTHROPIC_DEFAULT_SONNET_MODEL": self.settings.effective_runtime_model,
+                    "ANTHROPIC_DEFAULT_HAIKU_MODEL": self.settings.effective_runtime_model,
+                    "CLAUDE_CODE_SUBAGENT_MODEL": self.settings.effective_runtime_model,
                 }
             )
         return ClaudeAgentOptions(
@@ -615,7 +618,7 @@ class CCRuntimeOrchestrator:
             skills=selected_skills,
             max_turns=max(1, int(max_turns or self.settings.cc_runtime_max_turns)),
             max_budget_usd=self.settings.cc_runtime_max_budget_usd,
-            model=self.settings.cc_runtime_model,
+            model=self.settings.effective_runtime_model,
             effort=self.settings.cc_runtime_effort,
             env=runtime_env,
             hooks=hooks,

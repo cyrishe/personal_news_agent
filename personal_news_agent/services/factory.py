@@ -43,7 +43,7 @@ def build_services(settings: Settings) -> dict[str, Any]:
     native_ingestion = NativeSearchIngestionService(registry, store, url_store, search_index)
     topic_views = TopicViewService(store, search_service)
     deep_dive = DeepDiveService(search_service)
-    local_agent = LocalAgentService()
+    local_agent = LocalAgentService.from_app_settings(settings)
     llm_client = LLMClient(settings)
     everyday_capabilities = EverydayCapabilityService.from_settings(settings)
     cc_runtime = CCRuntimeOrchestrator(

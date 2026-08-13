@@ -27,7 +27,7 @@ from personal_news_agent.services.cc_runtime import (
     NEWS_CONVERSATION_RESEARCH_SKILL_NAME,
     NEWS_RELATED_EXPLORATION_SKILL_NAME,
 )
-from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL, SHARED_RUNTIME_MODEL, get_model_option
+from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL, DEFAULT_RUNTIME_MODEL, get_model_option
 from personal_news_agent.services.search import (
     UnifiedSearchService,
     search_result_matches_subject,
@@ -1265,8 +1265,8 @@ class NewsChatService:
                             "logical_model": selected_model.key,
                             "runtime_model": getattr(
                                 getattr(self.cc_runtime, "settings", None),
-                                "cc_runtime_model",
-                                SHARED_RUNTIME_MODEL,
+                                "effective_runtime_model",
+                                DEFAULT_RUNTIME_MODEL,
                             ),
                         },
                         *runtime_result.trace,
