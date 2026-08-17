@@ -47,6 +47,12 @@ def _default_phone_challenge_provider() -> str:
     return "aliyun_pnvs" if _aliyun_credentials_configured() else "disabled"
 
 
+def _project_path(env_name: str, default: Path) -> Path:
+    value = os.getenv(env_name)
+    path = Path(value).expanduser() if value else default
+    return path if path.is_absolute() else BASE_DIR / path
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "Personal News Agent"
@@ -71,6 +77,8 @@ class Settings:
         os.getenv("PERSONAL_NEWS_BACKGROUND_CRAWL", "1") == "1"
         and os.getenv("PNA_WEB_DISABLE_BACKGROUND_CRAWL", "0") != "1"
     )
+    automated_news_enabled: bool = os.getenv("PNA_AUTOMATED_NEWS_ENABLED", "1") == "1"
+    news_llm_analysis_enabled: bool = os.getenv("PNA_NEWS_LLM_ANALYSIS_ENABLED", "1") == "1"
     background_crawl_interval_seconds: int = int(os.getenv("PERSONAL_NEWS_BACKGROUND_CRAWL_SECONDS", "10"))
     trending_topic_refresh_seconds: int = int(os.getenv("PERSONAL_NEWS_TRENDING_REFRESH_SECONDS", "180"))
     external_search_provider: str = os.getenv("EXTERNAL_SEARCH_PROVIDER", "none")
@@ -113,6 +121,27 @@ class Settings:
     llm_model: str = os.getenv("PNA_LLM_MODEL", "deepseek-v4-flash")
     llm_default_model: str = os.getenv("PNA_LLM_DEFAULT_MODEL", "yuanrong-personal-assistant")
     llm_timeout_seconds: int = int(os.getenv("PNA_LLM_TIMEOUT_SECONDS", "120"))
+    content_moderation_enabled: bool = os.getenv("PNA_CONTENT_MODERATION_ENABLED", "0") == "1"
+    content_moderation_fail_open: bool = os.getenv("PNA_CONTENT_MODERATION_FAIL_OPEN", "1") == "1"
+    content_moderation_query_service: str = os.getenv(
+        "ALIYUN_CONTENT_MODERATION_QUERY_SERVICE",
+        "llm_query_moderation",
+    )
+    content_moderation_endpoint: str = os.getenv(
+        "ALIYUN_CONTENT_MODERATION_ENDPOINT",
+        "green-cip.cn-shanghai.aliyuncs.com",
+    )
+    conversation_audit_log_enabled: bool = os.getenv("PNA_CONVERSATION_AUDIT_LOG_ENABLED", "1") == "1"
+    conversation_audit_log_dir: Path = field(
+        default_factory=lambda: _project_path(
+            "PNA_CONVERSATION_AUDIT_LOG_DIR",
+            BASE_DIR / "logs" / "conversations",
+        )
+    )
+    conversation_audit_log_retention_days: int = int(
+        os.getenv("PNA_CONVERSATION_AUDIT_LOG_RETENTION_DAYS", "30")
+    )
+    api_key_rate_limit_per_minute: int = int(os.getenv("PNA_API_KEY_RATE_LIMIT_PER_MINUTE", "30"))
     cc_runtime_enabled: bool = os.getenv("PNA_CC_RUNTIME_ENABLED", "1") == "1"
     cc_runtime_effort: str | None = os.getenv("PNA_CC_RUNTIME_EFFORT") or None
     cc_runtime_max_turns: int = int(os.getenv("PNA_CC_RUNTIME_MAX_TURNS", "6"))

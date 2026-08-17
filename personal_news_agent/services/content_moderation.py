@@ -15,7 +15,16 @@ DEFAULT_DISCRIMINATIVE_MODEL_DIR = Path(__file__).resolve().parents[2] / "判别
 
 class ContentModerationError(RuntimeError):
     # 内容安全检测本身不可用时抛出，例如缺少密钥、缺少 SDK 或阿里云返回结构异常。
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        provider_code: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.provider_code = provider_code
+        self.request_id = request_id
 
 
 @dataclass(frozen=True)
@@ -39,7 +48,8 @@ class TextModerationPlusService:
         access_key_id: str | None = None,
         access_key_secret: str | None = None,
         endpoint: str | None = None,
-        query_service: str = LLM_QUERY_MODERATION_SERVICE,
+        query_service: str | None = None,
+        fail_open: bool = True,
         discriminative_model_dir: str | Path | None = None,
         discriminative_threshold: float | None = None,
     ):
@@ -49,7 +59,11 @@ class TextModerationPlusService:
         # TextModerationPlus 调试成功时用的是 green-cip.cn-shanghai.aliyuncs.com，可通过环境变量覆盖。
         self.endpoint = endpoint or os.getenv("ALIYUN_CONTENT_MODERATION_ENDPOINT", "green-cip.cn-shanghai.aliyuncs.com")
         # 用户输入和模型输出分别使用不同审核服务类型，必要时可以用环境变量分别覆盖。
-        self.query_service = os.getenv("ALIYUN_CONTENT_MODERATION_QUERY_SERVICE", query_service)
+        self.query_service = query_service or os.getenv(
+            "ALIYUN_CONTENT_MODERATION_QUERY_SERVICE",
+            LLM_QUERY_MODERATION_SERVICE,
+        )
+        self.fail_open = bool(fail_open)
         self.discriminative_model_dir = Path(
             discriminative_model_dir
             or os.getenv("PNA_DISCRIMINATIVE_MODEL_DIR")
@@ -78,7 +92,13 @@ class TextModerationPlusService:
         required_files = ("model.pt", "config.json", "vocab.json")
         return all((self.discriminative_model_dir / name).is_file() for name in required_files)
 
-    def check_query_text(self, text: str) -> ContentModerationResult:
+    def check_query_text(
+        self,
+        text: str,
+        *,
+        account_id: str | None = None,
+        data_id: str | None = None,
+    ) -> ContentModerationResult:
         """同时执行阿里云 query 审核和本地判别模型审核。"""
         if not self.configured:
             raise ContentModerationError("No content moderation service or local model is configured")
@@ -88,23 +108,36 @@ class TextModerationPlusService:
         aliyun_result: ContentModerationResult | None = None
         local_result: ContentModerationResult | None = None
         errors: dict[str, str] = {}
+        provider_errors: list[ContentModerationError] = []
 
         if self._aliyun_configured:
             try:
-                aliyun_result = self._check_text_with_service(text, self.query_service)
+                aliyun_result = self._check_text_with_service(
+                    text,
+                    self.query_service,
+                    account_id=account_id,
+                    data_id=data_id,
+                )
             except ContentModerationError as exc:
                 errors["aliyun"] = str(exc)
+                provider_errors.append(exc)
 
         if self._discriminative_model_available:
             try:
                 local_result = self._check_with_discriminative_model(text)
             except ContentModerationError as exc:
                 errors["discriminative_model"] = str(exc)
+                provider_errors.append(exc)
 
         completed = [result for result in (aliyun_result, local_result) if result is not None]
         if not completed:
             details = "; ".join(f"{name}: {error}" for name, error in errors.items())
-            raise ContentModerationError(details or "All content moderation checks are unavailable")
+            first_error = provider_errors[0] if provider_errors else None
+            raise ContentModerationError(
+                details or "All content moderation checks are unavailable",
+                provider_code=getattr(first_error, "provider_code", None),
+                request_id=getattr(first_error, "request_id", None),
+            )
 
         blocked = next((result for result in completed if not result.allowed), None)
         representative = blocked or completed[0]
@@ -123,13 +156,34 @@ class TextModerationPlusService:
             },
         )
 
-    def _check_text_with_service(self, text: str, service: str) -> ContentModerationResult:
+    def _check_text_with_service(
+        self,
+        text: str,
+        service: str,
+        *,
+        account_id: str | None = None,
+        data_id: str | None = None,
+    ) -> ContentModerationResult:
         if not self._aliyun_configured:
             raise ContentModerationError("Aliyun content moderation access key is not configured")
         if not text.strip():
             return self._empty_result()
 
-        payload = self._call_text_moderation_plus(text, service)
+        try:
+            payload = self._call_text_moderation_plus(
+                text,
+                service,
+                account_id=account_id,
+                data_id=data_id,
+            )
+        except ContentModerationError:
+            raise
+        except Exception as exc:
+            raise ContentModerationError(
+                f"Aliyun TextModerationPlus request failed: {type(exc).__name__}",
+                provider_code=getattr(exc, "code", None),
+                request_id=getattr(exc, "request_id", None),
+            ) from exc
         return self._parse_result(payload)
 
     @staticmethod
@@ -239,7 +293,11 @@ class TextModerationPlusService:
             message = str(payload.get("Message") or "Aliyun TextModerationPlus request failed")
             request_id = payload.get("RequestId")
             suffix = f" request_id={request_id}" if request_id else ""
-            raise ContentModerationError(f"{message}{suffix}")
+            raise ContentModerationError(
+                f"{message}{suffix}",
+                provider_code=str(code) if code is not None else None,
+                request_id=str(request_id) if request_id else None,
+            )
         # 当前按控制台验证过的安全返回判断：无风险且无标签才允许继续进入聊天流程。
         allowed = code == 200 and risk_level == "none" and label == "nonLabel"
         return ContentModerationResult(
@@ -253,7 +311,14 @@ class TextModerationPlusService:
             raw=payload,
         )
 
-    def _call_text_moderation_plus(self, text: str, service: str) -> dict[str, Any]:
+    def _call_text_moderation_plus(
+        self,
+        text: str,
+        service: str,
+        *,
+        account_id: str | None = None,
+        data_id: str | None = None,
+    ) -> dict[str, Any]:
         try:
             # 放在函数内部导入，避免未安装内容安全 SDK 时影响整个应用启动。
             from alibabacloud_tea_openapi import models as openapi_models
@@ -270,10 +335,15 @@ class TextModerationPlusService:
             endpoint=self.endpoint,
         )
         client = GreenClient(config)
+        service_parameters: dict[str, str] = {"content": text}
+        if account_id:
+            service_parameters["accountId"] = str(account_id)[:64]
+        if data_id:
+            service_parameters["dataId"] = str(data_id)[:64]
         request = green_models.TextModerationPlusRequest(
             service=service,
             # 阿里云接口要求 ServiceParameters 是 JSON 字符串，不是 Python dict。
-            service_parameters=json.dumps({"content": text}, ensure_ascii=False),
+            service_parameters=json.dumps(service_parameters, ensure_ascii=False),
         )
         response = client.text_moderation_plus(request)
         body = getattr(response, "body", None)

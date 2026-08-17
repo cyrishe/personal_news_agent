@@ -615,6 +615,8 @@ def test_cc_runtime_options_expose_only_read_only_news_tools(services, tmp_path)
         search,
         Settings(
             cc_runtime_enabled=True,
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
             llm_endpoint="https://api.deepseek.com",
             llm_key="test-only",
             llm_model="deepseek-v4-flash",
@@ -704,6 +706,8 @@ def test_cc_runtime_deepseek_options_cannot_use_stale_separate_credentials(servi
             llm_key="shared-deepseek-key",
             llm_model="deepseek-v4-flash",
             cc_runtime_enabled=True,
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
             cc_runtime_config_dir=tmp_path / "cc-runtime-deepseek-policy",
         ),
     )
@@ -732,6 +736,8 @@ def test_cc_runtime_run_normalizes_sdk_result_without_changing_business_schema(s
         search,
         Settings(
             cc_runtime_enabled=True,
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
             llm_endpoint="https://api.deepseek.com",
             llm_key="test-only",
             llm_model="deepseek-v4-flash",
@@ -764,6 +770,8 @@ def test_cc_runtime_retries_until_builtin_web_search_runs(services, tmp_path):
         search,
         Settings(
             cc_runtime_enabled=True,
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
             llm_endpoint="https://api.deepseek.com",
             llm_key="test-only",
             llm_model="deepseek-v4-flash",

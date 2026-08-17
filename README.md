@@ -268,6 +268,27 @@ source .env.ext
 python3 scripts/run_task_loop.py --limit 10 --idle-seconds 30
 ```
 
+### 暂停付费新闻自动化
+
+需要临时控制抓取和模型分析成本时，在 `.env` 或服务运行环境中设置：
+
+```bash
+PERSONAL_NEWS_BACKGROUND_CRAWL=0
+PNA_AUTOMATED_NEWS_ENABLED=0
+PNA_NEWS_LLM_ANALYSIS_ENABLED=0
+PNA_CC_RUNTIME_ENABLED=0
+PNA_CC_RUNTIME_BUILTIN_WEB_SEARCH=0
+```
+
+`PNA_AUTOMATED_NEWS_ENABLED=0` 会暂停独立 crawler、热点后台刷新和用户定时任务；
+`PNA_NEWS_LLM_ANALYSIS_ENABLED=0` 会让普通 LLM、CC Runtime 和兼容 Agent 停止发起模型调用。
+已有文章、主题、图谱、报告和对话记录不会删除，本地库检索仍然可用。修改后需要重启服务。
+可通过 `/api/health` 返回的 `cost_controls` 确认实际状态。
+
+如果只想暂停后台新闻刷新、同时保留用户按需发起的深度挖掘、新闻图谱和事实验证，
+只设置 `PNA_AUTOMATED_NEWS_ENABLED=0`，并保持 `PNA_NEWS_LLM_ANALYSIS_ENABLED=1`、
+`PNA_CC_RUNTIME_ENABLED=1`。生产环境当前采用这一模式。
+
 聊天里输入 `/schedule 帮我定时每天早晨9点收集关于AI Agent的新闻，并总结成一个专题发给我` 会创建 `scheduled_push` 任务。主线流程是：LLM 先把自然语言抽取成标准任务参数（`schedule`、`topics`、`category_scope`、`output_style`、`parsed_workflow` 等），服务端规范化后调用 `create_task` 入库。`scheduled_tasks` 会保存 owner/user、cron、创建时间、原始任务描述和解析后的任务流程。到期后 runner 会抓取/召回相关新闻，生成专题摘要，并追加到该用户固定的 `Scheduled Push` 对话。
 
 发现的 URL 会先去除 fragment 和常见追踪参数，再按 canonical URL 去重。正文入库时还会按内容 hash 做第二层去重。抓取结果会返回 `saved_articles`、`duplicate_articles`、`skipped_articles` 和各 worker 的执行记录。

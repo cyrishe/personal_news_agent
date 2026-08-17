@@ -415,7 +415,9 @@ def test_cc_registers_everyday_tools_only_when_explicitly_enabled(tmp_path):
         search,
         Settings(
             cc_runtime_enabled=True,
-            cc_runtime_auth_token="test-only",
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
+            llm_key="test-only",
             cc_runtime_config_dir=tmp_path / "cc-everyday",
         ),
         everyday_capabilities=everyday,
@@ -476,7 +478,9 @@ def test_successful_everyday_tool_suppresses_duplicate_builtin_web_search(tmp_pa
         search,
         Settings(
             cc_runtime_enabled=True,
-            cc_runtime_auth_token="test-only",
+            news_llm_analysis_enabled=True,
+            cc_runtime_builtin_web_search=True,
+            llm_key="test-only",
             cc_runtime_config_dir=tmp_path / "cc-web-fallback",
         ),
         everyday_capabilities=EverydayCapabilityService([FakeProvider()]),

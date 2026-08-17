@@ -6,11 +6,15 @@ import json
 from pathlib import Path
 import time
 from typing import Any
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
 
 from personal_news_agent.api.schemas import (
+    ApiConversationCreateRequest,
+    ApiConversationMessageRequest,
+    ApiKeyCreateRequest,
     ChatRequest,
     DeepDiveRequest,
     DueCrawlRequest,
@@ -39,6 +43,7 @@ from personal_news_agent.api.schemas import (
 from personal_news_agent.config import Settings
 from personal_news_agent.core.categories import CATEGORIES
 from personal_news_agent.services.auth import AuthError
+from personal_news_agent.services.api_keys import ApiKeyError, ApiPrincipal
 from personal_news_agent.services.report_export import export_report
 from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL
 
@@ -57,6 +62,48 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
     search_index = services["search_index"]
     search_service = services["search"]
     events = services["events"]
+    conversation_audit = services["conversation_audit"]
+
+    def request_id_for(request: Request) -> str:
+        candidate = str(request.headers.get("X-Request-ID") or "").strip()
+        if candidate and len(candidate) <= 96 and all(char.isalnum() or char in "-_." for char in candidate):
+            return candidate
+        return f"req_{uuid4().hex}"
+
+    def bearer_token(request: Request) -> str:
+        authorization = str(request.headers.get("Authorization") or "").strip()
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() != "bearer" or not token.strip():
+            raise HTTPException(
+                status_code=401,
+                detail={"code": "missing_bearer_token", "message": "请提供 Bearer 认证信息。"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return token.strip()
+
+    def session_user(request: Request) -> dict[str, Any]:
+        token = bearer_token(request)
+        user = store.get_session_user(token)
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail={"code": "invalid_session", "message": "登录会话无效或已过期。"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+
+    def api_principal(request: Request) -> ApiPrincipal:
+        try:
+            return services["api_keys"].authenticate(bearer_token(request))
+        except ApiKeyError as exc:
+            headers = {"WWW-Authenticate": "Bearer"}
+            if exc.status_code == 429:
+                headers["Retry-After"] = "60"
+            raise HTTPException(
+                status_code=exc.status_code,
+                detail={"code": exc.code, "message": str(exc)},
+                headers=headers,
+            ) from exc
 
     async def run_phone_operation(operation: str, callback: Any) -> Any:
         timeout_seconds = min(60.0, max(0.1, float(settings.phone_challenge_request_timeout_seconds)))
@@ -100,11 +147,23 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
 
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
+        moderation = services.get("content_moderation")
         return {
             "status": "ok",
             "frontend_revision": FRONTEND_REVISION,
             "categories": CATEGORIES,
             "source_count": len(registry.all_sources()),
+            "cost_controls": {
+                "automated_news_enabled": settings.automated_news_enabled,
+                "news_llm_analysis_enabled": settings.news_llm_analysis_enabled,
+                "background_crawl_enabled": settings.background_crawl_enabled,
+                "cc_runtime_enabled": settings.cc_runtime_enabled,
+            },
+            "content_moderation": {
+                "enabled": settings.content_moderation_enabled,
+                "configured": bool(moderation and getattr(moderation, "configured", False)),
+                "fail_open": settings.content_moderation_fail_open,
+            },
         }
 
     @app.get("/api/models")
@@ -480,17 +539,55 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
         return {"items": [_event_payload(item) for item in clusters]}
 
     @app.post("/api/chat")
-    async def chat(payload: ChatRequest) -> Any:
-        return await services["chat"].chat(
-            payload.conversation_id,
-            payload.message,
-            payload.topic,
-            payload.category_scope,
-            payload.use_llm,
+    async def chat(payload: ChatRequest, request: Request, response: Response) -> Any:
+        request_id = request_id_for(request)
+        started_at = time.monotonic()
+        conversation_audit.record(
+            "request",
+            request_id=request_id,
             user_id=payload.user_id,
-            allow_web_search=payload.allow_web_search,
-            model_key=payload.model_key,
+            conversation_id=payload.conversation_id,
+            channel="web_chat",
+            data={"request": payload.model_dump(mode="json")},
         )
+        try:
+            result = await services["chat"].chat(
+                payload.conversation_id,
+                payload.message,
+                payload.topic,
+                payload.category_scope,
+                payload.use_llm,
+                user_id=payload.user_id,
+                allow_web_search=payload.allow_web_search,
+                model_key=payload.model_key,
+            )
+        except Exception as exc:
+            conversation_audit.record(
+                "error",
+                request_id=request_id,
+                user_id=payload.user_id,
+                conversation_id=payload.conversation_id,
+                channel="web_chat",
+                data={
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                    "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+                },
+            )
+            raise
+        response.headers["X-Request-ID"] = request_id
+        conversation_audit.record(
+            "response",
+            request_id=request_id,
+            user_id=payload.user_id,
+            conversation_id=result.conversation_id,
+            channel="web_chat",
+            data={
+                "response": result.model_dump(mode="json"),
+                "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+            },
+        )
+        return result
 
     @app.get("/api/chat/conversations")
     async def chat_conversations(
@@ -518,23 +615,197 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
         }
 
     @app.post("/api/chat/stream")
-    async def chat_stream(payload: ChatRequest) -> StreamingResponse:
+    async def chat_stream(payload: ChatRequest, request: Request) -> StreamingResponse:
+        request_id = request_id_for(request)
+        started_at = time.monotonic()
+        conversation_audit.record(
+            "request",
+            request_id=request_id,
+            user_id=payload.user_id,
+            conversation_id=payload.conversation_id,
+            channel="web_chat_stream",
+            data={"request": payload.model_dump(mode="json")},
+        )
+
         async def event_stream():
-            async for event in services["chat"].chat_events(
-                payload.conversation_id,
+            final_conversation_id = payload.conversation_id
+            try:
+                async for event in services["chat"].chat_events(
+                    payload.conversation_id,
+                    payload.message,
+                    payload.topic,
+                    payload.category_scope,
+                    payload.use_llm,
+                    user_id=payload.user_id,
+                    allow_web_search=payload.allow_web_search,
+                    model_key=payload.model_key,
+                ):
+                    event_type = event.get("type", "message")
+                    event_payload = event.get("response") if isinstance(event.get("response"), dict) else event
+                    if isinstance(event_payload, dict):
+                        final_conversation_id = event_payload.get("conversation_id") or final_conversation_id
+                    conversation_audit.record(
+                        "stream_event",
+                        request_id=request_id,
+                        user_id=payload.user_id,
+                        conversation_id=final_conversation_id,
+                        channel="web_chat_stream",
+                        data={"event_type": event_type, "event": event},
+                    )
+                    data = json.dumps(event, ensure_ascii=False, default=str)
+                    yield f"event: {event_type}\ndata: {data}\n\n"
+            except asyncio.CancelledError:
+                conversation_audit.record(
+                    "client_disconnected",
+                    request_id=request_id,
+                    user_id=payload.user_id,
+                    conversation_id=final_conversation_id,
+                    channel="web_chat_stream",
+                    data={"elapsed_ms": int((time.monotonic() - started_at) * 1000)},
+                )
+                raise
+            except Exception as exc:
+                conversation_audit.record(
+                    "error",
+                    request_id=request_id,
+                    user_id=payload.user_id,
+                    conversation_id=final_conversation_id,
+                    channel="web_chat_stream",
+                    data={
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                        "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+                    },
+                )
+                raise
+            conversation_audit.record(
+                "completed",
+                request_id=request_id,
+                user_id=payload.user_id,
+                conversation_id=final_conversation_id,
+                channel="web_chat_stream",
+                data={"elapsed_ms": int((time.monotonic() - started_at) * 1000)},
+            )
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={"X-Request-ID": request_id},
+        )
+
+    @app.post("/api/v1/api-keys", status_code=201)
+    async def create_api_key(payload: ApiKeyCreateRequest, request: Request) -> dict[str, Any]:
+        user = session_user(request)
+        return services["api_keys"].create(
+            user["id"],
+            payload.name,
+            payload.expires_in_days,
+        )
+
+    @app.get("/api/v1/api-keys")
+    async def list_api_keys(request: Request) -> dict[str, Any]:
+        user = session_user(request)
+        return {"items": services["api_keys"].list(user["id"])}
+
+    @app.delete("/api/v1/api-keys/{api_key_id}")
+    async def revoke_api_key(api_key_id: str, request: Request) -> dict[str, Any]:
+        user = session_user(request)
+        item = services["api_keys"].revoke(user["id"], api_key_id)
+        if not item:
+            raise HTTPException(status_code=404, detail={"code": "api_key_not_found", "message": "API Key 不存在。"})
+        return {"item": item}
+
+    @app.post("/api/v1/conversations", status_code=201)
+    async def create_api_conversation(
+        payload: ApiConversationCreateRequest,
+        request: Request,
+    ) -> dict[str, Any]:
+        principal = api_principal(request)
+        return {"conversation": store.create_api_conversation(principal.user_id, payload.title)}
+
+    @app.get("/api/v1/conversations/{conversation_id}")
+    async def get_api_conversation(
+        conversation_id: str,
+        request: Request,
+        limit: int = Query(default=40, ge=1, le=100),
+    ) -> dict[str, Any]:
+        principal = api_principal(request)
+        if not store.api_conversation_belongs_to_user(conversation_id, principal.user_id):
+            raise HTTPException(status_code=404, detail={"code": "conversation_not_found", "message": "对话不存在。"})
+        return {
+            "conversation_id": conversation_id,
+            "turns": store.list_turns(conversation_id, user_id=principal.user_id, limit=limit),
+        }
+
+    @app.post("/api/v1/conversations/{conversation_id}/messages")
+    async def api_conversation_message(
+        conversation_id: str,
+        payload: ApiConversationMessageRequest,
+        request: Request,
+        response: Response,
+    ) -> dict[str, Any]:
+        principal = api_principal(request)
+        if not store.api_conversation_belongs_to_user(conversation_id, principal.user_id):
+            raise HTTPException(status_code=404, detail={"code": "conversation_not_found", "message": "对话不存在。"})
+        request_id = request_id_for(request)
+        started_at = time.monotonic()
+        conversation_audit.record(
+            "request",
+            request_id=request_id,
+            user_id=principal.user_id,
+            conversation_id=conversation_id,
+            channel="api_key_chat",
+            api_key_id=principal.api_key_id,
+            data={"request": payload.model_dump(mode="json")},
+        )
+        try:
+            result = await services["chat"].chat(
+                conversation_id,
                 payload.message,
                 payload.topic,
                 payload.category_scope,
                 payload.use_llm,
-                user_id=payload.user_id,
+                user_id=principal.user_id,
                 allow_web_search=payload.allow_web_search,
                 model_key=payload.model_key,
-            ):
-                event_type = event.get("type", "message")
-                data = json.dumps(event, ensure_ascii=False, default=str)
-                yield f"event: {event_type}\ndata: {data}\n\n"
-
-        return StreamingResponse(event_stream(), media_type="text/event-stream")
+            )
+        except Exception as exc:
+            conversation_audit.record(
+                "error",
+                request_id=request_id,
+                user_id=principal.user_id,
+                conversation_id=conversation_id,
+                channel="api_key_chat",
+                api_key_id=principal.api_key_id,
+                data={
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                    "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+                },
+            )
+            raise
+        response.headers["X-Request-ID"] = request_id
+        result_payload = result.model_dump(mode="json")
+        conversation_audit.record(
+            "response",
+            request_id=request_id,
+            user_id=principal.user_id,
+            conversation_id=conversation_id,
+            channel="api_key_chat",
+            api_key_id=principal.api_key_id,
+            data={
+                "response": result_payload,
+                "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+            },
+        )
+        return {
+            "request_id": request_id,
+            "conversation_id": result.conversation_id,
+            "turn_id": result.turn_id,
+            "model": payload.model_key,
+            "message": {"role": "assistant", "content": result.answer},
+            "response": result_payload,
+        }
 
     @app.post("/api/reports")
     async def reports(payload: ReportRequest) -> Any:

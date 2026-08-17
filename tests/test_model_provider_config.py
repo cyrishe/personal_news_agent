@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from claude_code_backend.service import LocalAgentService
 from personal_news_agent import config
+from personal_news_agent.services.llm import LLMClient
 
 
 def _clear_model_env(monkeypatch) -> None:
@@ -84,6 +85,7 @@ def test_compatibility_agent_uses_the_same_application_provider_contract(tmp_pat
         llm_model="deepseek-v4-flash",
         llm_default_model="yuanrong-personal-assistant",
         llm_timeout_seconds=120,
+        news_llm_analysis_enabled=True,
     )
 
     service = LocalAgentService.from_app_settings(settings)
@@ -95,6 +97,17 @@ def test_compatibility_agent_uses_the_same_application_provider_contract(tmp_pat
     assert service.config.default_model_key == settings.llm_default_model
     assert service.config.timeout_seconds == settings.llm_timeout_seconds
     assert "shared-key" not in repr(service.config)
+
+
+def test_news_analysis_pause_disables_direct_and_compatibility_model_calls():
+    settings = config.Settings(
+        llm_endpoint="https://api.deepseek.com",
+        llm_key="shared-key",
+        news_llm_analysis_enabled=False,
+    )
+
+    assert LLMClient(settings).configured is False
+    assert LocalAgentService.from_app_settings(settings).config.api_key is None
 
 
 def test_model_env_template_is_the_fixed_supported_contract():

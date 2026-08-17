@@ -162,7 +162,7 @@ class NewsChatService:
         conv_id = conversation_id or f"conv_{uuid4().hex[:12]}"
         topic, category_scope = self._resolve_conversation_context(conv_id, message, topic, category_scope, user_id)
         save_topic = self._request_topic_for_save(message, topic)
-        moderation_response = await self._moderate_query(conv_id, message)
+        moderation_response = await self._moderate_query(conv_id, message, user_id)
         if moderation_response:
             self._save_response_turn(moderation_response, message, user_id, save_topic, category_scope)
             return moderation_response
@@ -491,7 +491,7 @@ class NewsChatService:
         topic, category_scope = self._resolve_conversation_context(conv_id, message, topic, category_scope, user_id)
         save_topic = self._request_topic_for_save(message, topic)
         yield {"type": "start", "conversation_id": conv_id, "message": "开始处理问题。"}
-        moderation_response = await self._moderate_query(conv_id, message)
+        moderation_response = await self._moderate_query(conv_id, message, user_id)
         if moderation_response:
             self._save_response_turn(moderation_response, message, user_id, save_topic, category_scope)
             yield {"type": "final", "response": moderation_response.model_dump(mode="json")}
@@ -936,15 +936,79 @@ class NewsChatService:
         response = (last or {}).get("response") or {}
         return response.get("context_relation") == "topic_create_pending"
 
-    async def _moderate_query(self, conversation_id: str, message: str) -> ChatResponse | None:
+    async def _moderate_query(
+        self,
+        conversation_id: str,
+        message: str,
+        user_id: str,
+    ) -> ChatResponse | None:
         if not self.content_moderation or not getattr(self.content_moderation, "configured", False):
             return None
         try:
-            result = await asyncio.to_thread(self.content_moderation.check_query_text, message)
-        except Exception:
-            return None
+            result = await asyncio.to_thread(
+                self.content_moderation.check_query_text,
+                message,
+                account_id=user_id,
+                data_id=conversation_id,
+            )
+        except Exception as exc:
+            self.store.log(
+                "query_content_moderation",
+                "unavailable",
+                conversation_id,
+                {
+                    "provider": "aliyun_text_moderation_plus",
+                    "service": getattr(self.content_moderation, "query_service", None),
+                    "error_type": type(exc).__name__,
+                    "provider_code": getattr(exc, "provider_code", None),
+                    "request_id": getattr(exc, "request_id", None),
+                    "fail_open": bool(getattr(self.content_moderation, "fail_open", True)),
+                },
+            )
+            if getattr(self.content_moderation, "fail_open", True):
+                return None
+            answer = "输入安全检测服务暂时不可用，请稍后再试。"
+            return ChatResponse(
+                conversation_id=conversation_id,
+                answer=answer,
+                markdown=answer,
+                context_relation="query_moderation_unavailable",
+                focus_object=FocusObject(type="moderation", text="unavailable"),
+                required_context_items=["llm_query_moderation"],
+                research_trace=[
+                    {
+                        "stage": "输入安全检测",
+                        "status": "error",
+                        "message": "安全检测服务暂时不可用，未进入模型处理。",
+                    }
+                ],
+            )
         if result.allowed:
+            self.store.log(
+                "query_content_moderation",
+                "allowed",
+                conversation_id,
+                {
+                    "provider": "aliyun_text_moderation_plus",
+                    "service": getattr(self.content_moderation, "query_service", None),
+                    "risk_level": result.risk_level,
+                    "label": result.label,
+                    "request_id": result.request_id,
+                },
+            )
             return None
+        self.store.log(
+            "query_content_moderation",
+            "blocked",
+            conversation_id,
+            {
+                "provider": "aliyun_text_moderation_plus",
+                "service": getattr(self.content_moderation, "query_service", None),
+                "risk_level": result.risk_level,
+                "label": result.label,
+                "request_id": result.request_id,
+            },
+        )
         answer = "这条问题没有通过内容安全检测，请换一种问法后再试。"
         return ChatResponse(
             conversation_id=conversation_id,

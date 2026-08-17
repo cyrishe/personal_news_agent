@@ -181,6 +181,18 @@ CREATE TABLE IF NOT EXISTS pna_auth_sessions (
   created_at TEXT,
   expires_at TEXT
 );
+CREATE TABLE IF NOT EXISTS pna_api_keys (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  key_prefix TEXT NOT NULL,
+  secret_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL,
+  last_used_at TEXT,
+  expires_at TEXT,
+  revoked_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_pna_api_keys_user ON pna_api_keys(user_id, created_at);
 CREATE TABLE IF NOT EXISTS pna_phone_verification_challenges (
   challenge_id TEXT PRIMARY KEY,
   mobile_hash TEXT NOT NULL,
@@ -1083,6 +1095,7 @@ class NewsStore:
             "user_profiles",
             "pna_auth_identities",
             "pna_auth_sessions",
+            "pna_api_keys",
             "user_feedback",
             "scheduled_tasks",
             "notifications",
@@ -1258,6 +1271,99 @@ class NewsStore:
                 "INSERT INTO pna_auth_sessions(token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
                 (token, user_id, _now(), expires_at),
             )
+
+    def get_session_user(self, token: str) -> dict[str, Any] | None:
+        now = _now()
+        with self.connect() as conn:
+            row = conn.execute(
+                """
+                SELECT u.*
+                FROM pna_auth_sessions s
+                JOIN pna_users u ON u.id = s.user_id
+                WHERE s.token = ? AND s.expires_at > ?
+                """,
+                (token, now),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def create_api_key(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        key_prefix: str,
+        secret_hash: str,
+        expires_at: str | None,
+    ) -> dict[str, Any]:
+        now = _now()
+        api_key_id = stable_id("key", f"{user_id}:{name}:{now}")
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO pna_api_keys(
+                    id, user_id, name, key_prefix, secret_hash, created_at, expires_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (api_key_id, user_id, name, key_prefix, secret_hash, now, expires_at),
+            )
+        return {
+            "id": api_key_id,
+            "user_id": user_id,
+            "name": name,
+            "key_prefix": key_prefix,
+            "created_at": now,
+            "last_used_at": None,
+            "expires_at": expires_at,
+            "revoked_at": None,
+        }
+
+    def list_api_keys(self, user_id: str) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, user_id, name, key_prefix, created_at, last_used_at, expires_at, revoked_at
+                FROM pna_api_keys
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+                """,
+                (user_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_api_key_by_hash(self, secret_hash: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM pna_api_keys WHERE secret_hash = ?",
+                (secret_hash,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def mark_api_key_used(self, api_key_id: str) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                "UPDATE pna_api_keys SET last_used_at = ? WHERE id = ?",
+                (_now(), api_key_id),
+            )
+
+    def revoke_api_key(self, user_id: str, api_key_id: str) -> dict[str, Any] | None:
+        now = _now()
+        with self.connect() as conn:
+            conn.execute(
+                """
+                UPDATE pna_api_keys
+                SET revoked_at = COALESCE(revoked_at, ?)
+                WHERE id = ? AND user_id = ?
+                """,
+                (now, api_key_id, user_id),
+            )
+            row = conn.execute(
+                """
+                SELECT id, user_id, name, key_prefix, created_at, last_used_at, expires_at, revoked_at
+                FROM pna_api_keys WHERE id = ? AND user_id = ?
+                """,
+                (api_key_id, user_id),
+            ).fetchone()
+        return dict(row) if row else None
 
     def save_profile(self, profile: dict[str, Any]) -> None:
         with self.connect() as conn:
@@ -1600,6 +1706,40 @@ class NewsStore:
             )
             row = conn.execute("SELECT * FROM conversations WHERE user_id = ? AND kind = ?", (user_id, kind)).fetchone()
         return _conversation_row(row)
+
+    def create_api_conversation(self, user_id: str, title: str = "API 对话") -> dict[str, Any]:
+        now = _now()
+        conversation_id = stable_id("conv", f"{user_id}:api:{title}:{now}")
+        # The legacy schema keeps (user_id, kind) unique. A scoped kind preserves
+        # that compatibility while allowing more than one API conversation.
+        stored_kind = f"api:{conversation_id}"
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO conversations(id, user_id, title, kind, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (conversation_id, user_id, title, stored_kind, now, now),
+            )
+        return {
+            "id": conversation_id,
+            "user_id": user_id,
+            "title": title,
+            "kind": "api",
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def api_conversation_belongs_to_user(self, conversation_id: str, user_id: str) -> bool:
+        with self.connect() as conn:
+            row = conn.execute(
+                """
+                SELECT 1 FROM conversations
+                WHERE id = ? AND user_id = ? AND kind LIKE 'api:%'
+                """,
+                (conversation_id, user_id),
+            ).fetchone()
+        return bool(row)
 
     def save_report(self, user_id: str, topic: str, category_scope: list[str], report: dict[str, Any]) -> str:
         report_id = stable_id("rpt", f"{user_id}:{topic}:{_now()}")

@@ -21,6 +21,25 @@ from personal_news_agent.services.topic_extraction import TopicExtractionService
 from personal_news_agent.services.url_store import CrawlUrlStore, MySQLCrawlUrlStore
 
 
+async def _wait_while_disabled(service_name: str) -> None:
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for signal_name in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(signal_name, stop.set)
+    print(
+        json.dumps(
+            {
+                "status": "disabled",
+                "service": service_name,
+                "reason": "PNA_AUTOMATED_NEWS_ENABLED=0",
+            },
+            ensure_ascii=False,
+        ),
+        flush=True,
+    )
+    await stop.wait()
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Continuously refresh due portal index pages with a fixed low-concurrency worker pool.")
     parser.add_argument("--category", default=None)
@@ -31,6 +50,10 @@ async def main() -> None:
     parser.add_argument("--idle-seconds", type=float, default=30.0)
     parser.add_argument("--extraction-limit", type=int, default=20)
     args = parser.parse_args()
+
+    if not settings.automated_news_enabled:
+        await _wait_while_disabled("crawler")
+        return
 
     registry = SourceRegistryService(settings.sources_path)
     registry.load()

@@ -14,7 +14,11 @@ class LLMClient:
 
     @property
     def configured(self) -> bool:
-        return bool(self.settings.llm_endpoint and self.settings.llm_key)
+        return bool(
+            self.settings.news_llm_analysis_enabled
+            and self.settings.llm_endpoint
+            and self.settings.llm_key
+        )
 
     async def chat(self, messages: list[dict[str, str]], model_key: str | None = None) -> str:
         return await self._complete(messages, model_key=model_key)

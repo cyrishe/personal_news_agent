@@ -83,6 +83,24 @@ class ChatRequest(BaseModel):
     model_key: str = Field(default="yuanrong-personal-assistant", min_length=1, max_length=80)
 
 
+class ApiKeyCreateRequest(BaseModel):
+    name: str = Field(default="默认 API Key", min_length=1, max_length=80)
+    expires_in_days: int | None = Field(default=None, ge=1, le=3650)
+
+
+class ApiConversationCreateRequest(BaseModel):
+    title: str = Field(default="API 对话", min_length=1, max_length=120)
+
+
+class ApiConversationMessageRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=8000)
+    topic: str | None = Field(default=None, max_length=200)
+    category_scope: list[str] = Field(default_factory=list)
+    use_llm: bool = True
+    allow_web_search: bool = True
+    model_key: str = Field(default="yuanrong-personal-assistant", min_length=1, max_length=80)
+
+
 class ReportRequest(BaseModel):
     user_id: str = "default"
     topic: str

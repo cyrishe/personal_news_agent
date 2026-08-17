@@ -159,6 +159,13 @@ if settings.phone_challenge_provider.strip().lower() == "aliyun_pnvs":
     from alibabacloud_tea_openapi import models as open_api_models  # noqa: F401
     from alibabacloud_tea_util import models as util_models  # noqa: F401
 
+if settings.content_moderation_enabled:
+    from alibabacloud_green20220302.client import Client as GreenClient  # noqa: F401
+    if not (settings.aliyun_access_key_id and settings.aliyun_access_key_secret):
+        raise SystemExit(
+            "Preflight failed: content moderation requires AccessKeyID/AccessKeySecret."
+        )
+
 fastapi.FastAPI(title="Personal News Agent preflight")
 registry = SourceRegistryService(Path("sources.yaml"))
 registry.load()
@@ -187,7 +194,9 @@ print(
     f"{len(registry.all_sources())} sources loaded, "
     f"LLM host {llm_host or 'not configured'}, runtime model {settings.effective_runtime_model}, {cc_summary}, "
     f"phone provider {settings.phone_challenge_provider}, "
-    "phone credentials AccessKeyID/AccessKeySecret."
+    "phone credentials AccessKeyID/AccessKeySecret, "
+    f"content moderation {'enabled' if settings.content_moderation_enabled else 'disabled'}, "
+    f"conversation audit {'enabled' if settings.conversation_audit_log_enabled else 'disabled'}."
 )
 PY
 }

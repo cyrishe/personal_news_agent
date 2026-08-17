@@ -7,9 +7,12 @@ from claude_code_backend import LocalAgentService
 from personal_news_agent.config import Settings
 from personal_news_agent.everyday import EverydayCapabilityService
 from personal_news_agent.services.auth import AuthService
+from personal_news_agent.services.api_keys import ApiKeyService
 from personal_news_agent.services.chat import NewsChatService
 from personal_news_agent.services.cc_runtime import CCRuntimeOrchestrator
 from personal_news_agent.services.crawl import CrawlScheduler
+from personal_news_agent.services.content_moderation import TextModerationPlusService
+from personal_news_agent.services.conversation_audit import ConversationAuditLogger
 from personal_news_agent.services.deep_dive import DeepDiveService
 from personal_news_agent.services.events import EventDiscoveryService
 from personal_news_agent.services.factcheck import FactCheckService
@@ -76,10 +79,20 @@ def build_services(settings: Settings) -> dict[str, Any]:
         cc_runtime=cc_runtime,
     )
     topic_agent = TopicAgentService(store, tasks, topic_views=topic_views, native_ingestion=native_ingestion)
-    # Demo-safe mode: keep input moderation out of the request path until the
-    # cloud moderation entitlement is verified. The chat service already
-    # treats a missing moderation service as pass-through.
     content_moderation = None
+    if settings.content_moderation_enabled:
+        content_moderation = TextModerationPlusService(
+            access_key_id=settings.aliyun_access_key_id,
+            access_key_secret=settings.aliyun_access_key_secret,
+            endpoint=settings.content_moderation_endpoint,
+            query_service=settings.content_moderation_query_service,
+            fail_open=settings.content_moderation_fail_open,
+        )
+    conversation_audit = ConversationAuditLogger(
+        settings.conversation_audit_log_dir,
+        enabled=settings.conversation_audit_log_enabled,
+        retention_days=settings.conversation_audit_log_retention_days,
+    )
     topic_extraction = TopicExtractionService(store)
 
     skill_registry = build_default_registry()
@@ -95,6 +108,10 @@ def build_services(settings: Settings) -> dict[str, Any]:
         "deep_dive": deep_dive,
         "events": events,
         "auth": AuthService(store, settings),
+        "api_keys": ApiKeyService(
+            store,
+            rate_limit_per_minute=settings.api_key_rate_limit_per_minute,
+        ),
         "onboarding": OnboardingService(store, settings),
         "feed": PersonalizationService(store, registry),
         "model_options": public_model_options,
@@ -106,6 +123,7 @@ def build_services(settings: Settings) -> dict[str, Any]:
         "topic_agent": topic_agent,
         "topic_extraction": topic_extraction,
         "content_moderation": content_moderation,
+        "conversation_audit": conversation_audit,
         "local_agent": local_agent,
         "cc_runtime": cc_runtime,
         "everyday_capabilities": everyday_capabilities,

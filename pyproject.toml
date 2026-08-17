@@ -15,7 +15,8 @@ dependencies = [
   "PyMySQL>=1.1.0",
   "alibabacloud_cloudauth20190307==3.13.1",
   "alibabacloud_dypnsapi20170525==2.0.0",
-  "alibabacloud_green20220302>=2.1.1",
+  "alibabacloud_green20220302==2.2.15",
+  "alibabacloud-tea-openapi==0.4.4",
   "reportlab>=5.0.0",
 
 ]

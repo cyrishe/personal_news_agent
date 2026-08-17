@@ -39,7 +39,7 @@ class LocalAgentService:
             base_url=app_settings.llm_endpoint or "https://api.deepseek.com",
             default_model_key=app_settings.llm_default_model,
             runtime_model=app_settings.llm_model,
-            api_key=app_settings.llm_key,
+            api_key=app_settings.llm_key if app_settings.news_llm_analysis_enabled else None,
             timeout_seconds=app_settings.llm_timeout_seconds,
         )
         return cls(config=config)

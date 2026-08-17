@@ -16,12 +16,35 @@ from personal_news_agent.services.factory import build_services
 from personal_news_agent.services.source_registry import SourceRegistryError
 
 
+async def _wait_while_disabled(service_name: str) -> None:
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for signal_name in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(signal_name, stop.set)
+    print(
+        json.dumps(
+            {
+                "event": "disabled",
+                "service": service_name,
+                "reason": "PNA_AUTOMATED_NEWS_ENABLED=0",
+            },
+            ensure_ascii=False,
+        ),
+        flush=True,
+    )
+    await stop.wait()
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Continuously run due per-user scheduled tasks.")
     parser.add_argument("--user-id", default=None)
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--idle-seconds", type=float, default=30.0)
     args = parser.parse_args()
+
+    if not settings.automated_news_enabled:
+        await _wait_while_disabled("scheduled_tasks")
+        return
 
     services = build_services(settings)
     store = services["store"]

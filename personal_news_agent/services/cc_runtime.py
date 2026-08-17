@@ -255,7 +255,12 @@ class CCRuntimeOrchestrator:
             or self.settings.effective_cc_runtime_auth_token
             or self.settings.effective_cc_runtime_api_key
         )
-        return bool(self.settings.cc_runtime_enabled and sdk_ready and credentials_ready)
+        return bool(
+            self.settings.news_llm_analysis_enabled
+            and self.settings.cc_runtime_enabled
+            and sdk_ready
+            and credentials_ready
+        )
 
     async def run(
         self,
