@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from personal_news_agent.core.models import TimeRange
@@ -99,6 +101,7 @@ class ApiConversationMessageRequest(BaseModel):
     use_llm: bool = True
     allow_web_search: bool = True
     model_key: str = Field(default="yuanrong-personal-assistant", min_length=1, max_length=80)
+    conversation_mode: Literal["general", "research", "auto"] = "general"
 
 
 class ReportRequest(BaseModel):

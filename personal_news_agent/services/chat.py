@@ -158,6 +158,7 @@ class NewsChatService:
         user_id: str = "default",
         allow_web_search: bool = False,
         model_key: str = DEFAULT_LOGICAL_MODEL,
+        conversation_mode: str = "auto",
     ) -> ChatResponse:
         conv_id = conversation_id or f"conv_{uuid4().hex[:12]}"
         topic, category_scope = self._resolve_conversation_context(conv_id, message, topic, category_scope, user_id)
@@ -181,7 +182,10 @@ class NewsChatService:
         elif ordinal:
             response = await self._article_followup(conv_id, message, ordinal)
         elif use_llm:
-            if _is_general_conversation(message, topic):
+            use_general_chat = conversation_mode == "general" or (
+                conversation_mode == "auto" and _is_general_conversation(message, topic)
+            )
+            if use_general_chat:
                 response = await self._general_chat(
                     conv_id,
                     message,

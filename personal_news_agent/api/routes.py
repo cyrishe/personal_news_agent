@@ -768,6 +768,7 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
                 user_id=principal.user_id,
                 allow_web_search=payload.allow_web_search,
                 model_key=payload.model_key,
+                conversation_mode=payload.conversation_mode,
             )
         except Exception as exc:
             conversation_audit.record(
@@ -803,6 +804,7 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
             "conversation_id": result.conversation_id,
             "turn_id": result.turn_id,
             "model": payload.model_key,
+            "conversation_mode": payload.conversation_mode,
             "message": {"role": "assistant", "content": result.answer},
             "response": result_payload,
         }

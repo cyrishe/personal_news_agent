@@ -89,7 +89,7 @@ def test_api_key_conversation_contract_and_tenant_isolation(api_app):
             headers={"Authorization": f"Bearer {raw_key}", "X-Request-ID": "contract-test-1"},
             json={
                 "message": "科技新闻",
-                "use_llm": False,
+                "use_llm": True,
                 "allow_web_search": False,
             },
         )
@@ -97,7 +97,9 @@ def test_api_key_conversation_contract_and_tenant_isolation(api_app):
         assert message.headers["x-request-id"] == "contract-test-1"
         assert message.json()["conversation_id"] == conversation_id
         assert message.json()["turn_id"]
+        assert message.json()["conversation_mode"] == "general"
         assert message.json()["message"]["role"] == "assistant"
+        assert message.json()["response"]["context_relation"] == "general_conversation_fallback"
 
         history = client.get(
             f"/api/v1/conversations/{conversation_id}",

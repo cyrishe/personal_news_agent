@@ -42,6 +42,10 @@ curl -X POST http://127.0.0.1:22053/api/v1/conversations/<conversation-id>/messa
   }'
 ```
 
+消息 API 默认使用 `conversation_mode: "general"`，由 CC 以普通自然对话方式回答，
+不会加载项目级 Skill。需要进入新闻研究工作流时，调用方须显式传入
+`conversation_mode: "research"`；兼容旧版自动判别时可传 `conversation_mode: "auto"`。
+
 读取历史：`GET /api/v1/conversations/{conversation_id}`。API Key 只能访问其所属用户创建的 API 对话。
 
 ## 3. 对话数据和日志边界
