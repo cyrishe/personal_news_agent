@@ -1,4 +1,4 @@
 interface:
-  display_name: "API Query Safety"
-  short_description: "Classify API queries and choose pass, refusal, or safe response."
-  default_prompt: "Classify this API query by safety category and return the required response action."
+  display_name: "API 请求风控"
+  short_description: "判断 API 请求的风险类型并选择放行、拒答或正向回答。"
+  default_prompt: "判断这个 API 请求的风险类型和回答动作，并严格返回约定的 JSON。"

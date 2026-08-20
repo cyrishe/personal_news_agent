@@ -686,6 +686,42 @@ def test_cc_runtime_options_expose_only_read_only_news_tools(services, tmp_path)
     assert builtin_web_options.allowed_tools == ["Skill", LOCAL_TOOL_NAME, "WebSearch"]
     assert "WebSearch" not in builtin_web_options.disallowed_tools
 
+    trusted_context = RuntimeSearchContext(
+        store,
+        search,
+        ["tech"],
+        None,
+        allow_web_search=True,
+        trusted_web_domains=["news.cn", "gov.cn"],
+    )
+    trusted_options = runtime.build_options(trusted_context, builtin_web_search_limit=2)
+    trusted_hook = trusted_options.hooks["PreToolUse"][0].hooks[0]
+    trusted_result = asyncio.run(
+        trusted_hook(
+            {"tool_name": "WebSearch", "tool_input": {"query": "台湾美食"}},
+            None,
+            {},
+        )
+    )
+    rewritten_query = trusted_result["hookSpecificOutput"]["updatedInput"]["query"]
+    assert "site:news.cn" in rewritten_query
+    assert "site:gov.cn" in rewritten_query
+    assert "只能依据这些来源概括事实" in trusted_options.system_prompt
+
+    structured_options = runtime.build_options(
+        context,
+        system_prompt_override="只做分类",
+        output_schema={"type": "object"},
+        isolated=True,
+    )
+    assert structured_options.system_prompt == "只做分类"
+    assert structured_options.output_format == {
+        "type": "json_schema",
+        "schema": {"type": "object"},
+    }
+    assert structured_options.setting_sources == []
+    assert structured_options.skills == []
+
     with pytest.raises(ValueError, match="Unsupported project skill"):
         runtime.build_options(context, ["arbitrary-skill"])
 

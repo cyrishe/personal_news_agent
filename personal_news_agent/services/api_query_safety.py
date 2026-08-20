@@ -5,8 +5,6 @@ import json
 import re
 from typing import Any
 
-from personal_news_agent.services.cc_runtime import API_QUERY_SAFETY_SKILL_NAME
-from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL
 from personal_news_agent.services.store import NewsStore
 
 
@@ -28,6 +26,21 @@ SAFETY_CATEGORIES = frozenset(
     }
 )
 REASON_CODE_PATTERN = re.compile(r"^[a-z0-9_]{1,80}$")
+GENERIC_SAFETY_REFUSAL = "抱歉，这类问题超出了当前服务支持的范围，我无法提供相关内容。"
+TRUSTED_SENSITIVE_NEWS_DOMAINS = (
+    "news.cn",
+    "xinhuanet.com",
+    "xinhuanet.com.cn",
+    "chinanews.com.cn",
+    "gov.cn",
+    "fmprc.gov.cn",
+    "gwytb.gov.cn",
+    "cma.gov.cn",
+    "weather.com.cn",
+    "people.com.cn",
+    "cctv.com",
+    "cgtn.com",
+)
 
 
 class ApiQuerySafetyUnavailable(RuntimeError):
@@ -63,30 +76,24 @@ class ApiQuerySafetyService:
             self._log_unavailable(conversation_id, user_id, "cc_runtime_unavailable")
             raise ApiQuerySafetyUnavailable("API query safety service is unavailable")
 
-        try:
-            runtime_result = await self.cc_runtime.run(
-                message=str(message or "")[:8_000],
-                query=str(message or "")[:500],
-                topic=None,
-                category_scope=[],
-                time_range=None,
-                history=str(history or "无")[:4_000],
-                allow_web_search=False,
-                allow_local_search=False,
-                logical_model_key=DEFAULT_LOGICAL_MODEL,
-                logical_model_name="元融大模型",
-                skill_names=[API_QUERY_SAFETY_SKILL_NAME],
-                strict_json_output=True,
-                max_turns=1,
-                builtin_web_search_limit=0,
-                require_builtin_web_search=False,
-            )
-            result = _parse_result(runtime_result.answer)
-        except ApiQuerySafetyUnavailable:
-            raise
-        except Exception as exc:
-            self._log_unavailable(conversation_id, user_id, type(exc).__name__)
-            raise ApiQuerySafetyUnavailable("API query safety service is unavailable") from exc
+        last_error: Exception | None = None
+        result: ApiQuerySafetyResult | None = None
+        for attempt in range(2):
+            try:
+                runtime_result = await self.cc_runtime.run_api_query_safety(
+                    message=str(message or "")[:8_000],
+                    history=str(history or "无")[:4_000],
+                )
+                result = _parse_result(runtime_result.answer)
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt == 0:
+                    continue
+        if result is None:
+            detail = f"{type(last_error).__name__}: {str(last_error or '')[:300]}"
+            self._log_unavailable(conversation_id, user_id, detail)
+            raise ApiQuerySafetyUnavailable("API query safety service is unavailable") from last_error
 
         self.store.log(
             "api_query_safety",
@@ -135,6 +142,11 @@ def _parse_result(text: str) -> ApiQuerySafetyResult:
         response = ""
     elif "none" in categories or not response:
         raise ValueError("invalid constrained safety response")
+    elif decision == "refuse":
+        # Refusal is a terminal safety action, not a fact-checking branch. Keep
+        # it deliberately non-specific so model wording cannot imply that an
+        # unsafe allegation may be true but merely lacks evidence.
+        response = GENERIC_SAFETY_REFUSAL
     return ApiQuerySafetyResult(decision, categories, risk_level, reason_code, response)
 
 

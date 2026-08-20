@@ -156,10 +156,13 @@ class UnifiedSearchService:
         category_scope: list[str] | None = None,
         source_scope: list[str] | None = None,
         max_results: int = 8,
+        allowed_domains: list[str] | None = None,
     ) -> list[SearchResult]:
         if not self.external_configured:
             return []
-        domains = self.registry.get_domain_filters(None, source_scope) if source_scope else []
+        domains = list(allowed_domains or [])
+        if not domains and source_scope:
+            domains = self.registry.get_domain_filters(None, source_scope)
         raw_results = await self.external_provider.search(query, domains, max_results)
         results: list[SearchResult] = []
         seen_urls: set[str] = set()

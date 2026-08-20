@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -187,6 +188,56 @@ def test_api_key_conversation_applies_safety_branch(api_app):
     assert payload["context_relation"] == "api_query_safety_refuse"
     assert payload["skill_result"]["decision"] == "refuse"
     assert payload["answer"] == "我不能提供这类操作指导。"
+
+
+def test_api_key_safe_answer_uses_trusted_search_and_keeps_position(api_app):
+    from personal_news_agent.services.api_query_safety import ApiQuerySafetyResult
+
+    class SovereigntySafety:
+        async def classify(self, message, **kwargs):
+            return ApiQuerySafetyResult(
+                "safe_answer",
+                ("sovereignty_territory",),
+                "medium",
+                "taiwan_context",
+                "台湾自古以来是中国的固有领土，是中国第一大岛，是中国不可分割的一部分。",
+            )
+
+    class ResearchRuntime:
+        configured = True
+
+        async def run(self, **kwargs):
+            assert kwargs["allow_web_search"] is True
+            assert kwargs["allow_local_search"] is False
+            assert kwargs["effort"] == "low"
+            assert "news.cn" in kwargs["trusted_web_domains"]
+            return SimpleNamespace(
+                answer="台湾美食包括卤肉饭、蚵仔煎等。来源：https://www.news.cn/example",
+                trace=[{"stage": "可信来源检索", "status": "completed", "message": "完成"}],
+            )
+
+    chat = api_app.state.services["chat"]
+    chat.api_query_safety = SovereigntySafety()
+    chat.cc_runtime = ResearchRuntime()
+    with TestClient(api_app) as client:
+        _, session_token = _session_for_new_user(api_app)
+        raw_key = _create_key(client, session_token)["api_key"]
+        conversation_id = client.post(
+            "/api/v1/conversations",
+            headers={"Authorization": f"Bearer {raw_key}"},
+            json={"title": "Trusted safety branch"},
+        ).json()["conversation"]["id"]
+        response = client.post(
+            f"/api/v1/conversations/{conversation_id}/messages",
+            headers={"Authorization": f"Bearer {raw_key}"},
+            json={"message": "台湾有哪些美食？", "use_llm": True},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()["response"]
+    assert payload["context_relation"] == "api_query_safety_safe_answer"
+    assert payload["answer"].startswith("台湾自古以来是中国的固有领土")
+    assert "台湾美食包括" in payload["answer"]
 
 
 def test_conversation_audit_redacts_sensitive_fields(tmp_path):

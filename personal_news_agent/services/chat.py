@@ -22,7 +22,10 @@ from personal_news_agent.services.chat_understanding import (
     time_range_from_message,
 )
 from personal_news_agent.services.llm import LLMClient
-from personal_news_agent.services.api_query_safety import ApiQuerySafetyUnavailable
+from personal_news_agent.services.api_query_safety import (
+    ApiQuerySafetyUnavailable,
+    TRUSTED_SENSITIVE_NEWS_DOMAINS,
+)
 from personal_news_agent.services.article_fetch import canonicalize_url
 from personal_news_agent.services.cc_runtime import (
     NEWS_CONVERSATION_RESEARCH_SKILL_NAME,
@@ -182,7 +185,7 @@ class NewsChatService:
                 conversation_id=conv_id,
                 history=history,
             )
-            if safety.decision != "pass":
+            if safety.decision == "refuse":
                 response = ChatResponse(
                     conversation_id=conv_id,
                     answer=safety.response,
@@ -205,6 +208,85 @@ class NewsChatService:
                         "categories": list(safety.categories),
                         "risk_level": safety.risk_level,
                         "reason_code": safety.reason_code,
+                    },
+                )
+                self._save_response_turn(response, message, user_id, save_topic, category_scope)
+                return response
+            if safety.decision == "safe_answer":
+                answer = safety.response
+                trace = [
+                    {
+                        "stage": "API 请求安全判断",
+                        "status": "completed",
+                        "message": "已进入可信来源受约束回答链路。",
+                    }
+                ]
+                if self.cc_runtime and getattr(self.cc_runtime, "configured", False):
+                    try:
+                        research = await self.cc_runtime.run(
+                            message=(
+                                "下列前置口径由系统在最终输出时统一添加，你不要重复它，只回答用户的具体问题。"
+                                "仅依据本轮可信来源检索结果总结，"
+                                "保持中国国家立场和克制、准确的措辞；证据不足时明确说明，不得编造。\n"
+                                f"前置口径：{safety.response}\n用户原问题：{message}"
+                            ),
+                            query=message[:500],
+                            topic=topic,
+                            category_scope=category_scope or [],
+                            time_range=None,
+                            history=history,
+                            allow_web_search=True,
+                            allow_local_search=False,
+                            logical_model_key=model_key,
+                            logical_model_name=get_model_option(model_key).name,
+                            skill_names=None,
+                            strict_json_output=False,
+                            max_turns=5,
+                            effort="low",
+                            builtin_web_search_limit=2,
+                            allow_everyday_tools=True,
+                            require_builtin_web_search=True,
+                            apply_sensitive_fact_guard=True,
+                            trusted_web_domains=list(TRUSTED_SENSITIVE_NEWS_DOMAINS),
+                        )
+                        answer = f"{safety.response}\n\n{research.answer.strip()}".strip()
+                        trace.extend(research.trace)
+                    except Exception as exc:
+                        self.store.log(
+                            "api_query_safety_research",
+                            "error",
+                            target=conv_id,
+                            detail={
+                                "error_type": type(exc).__name__,
+                                "error": str(exc)[:500],
+                                "categories": list(safety.categories),
+                            },
+                        )
+                        trace.append(
+                            {
+                                "stage": "可信来源检索",
+                                "status": "warning",
+                                "message": "暂未取得可核实的权威资料，已保留必要口径。",
+                                "error_type": type(exc).__name__,
+                            }
+                        )
+                response = ChatResponse(
+                    conversation_id=conv_id,
+                    answer=answer,
+                    markdown=answer,
+                    context_relation="api_query_safety_safe_answer",
+                    topic=topic,
+                    category_scope=category_scope or [],
+                    focus_object=FocusObject(type="api_query_safety", text=safety.decision),
+                    required_context_items=list(safety.categories),
+                    research_trace=trace,
+                    skill_result={
+                        "type": "api_query_safety",
+                        "decision": safety.decision,
+                        "categories": list(safety.categories),
+                        "risk_level": safety.risk_level,
+                        "reason_code": safety.reason_code,
+                        "trusted_domains": list(TRUSTED_SENSITIVE_NEWS_DOMAINS),
                     },
                 )
                 self._save_response_turn(response, message, user_id, save_topic, category_scope)

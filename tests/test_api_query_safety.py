@@ -8,8 +8,8 @@ from personal_news_agent.services.api_query_safety import (
     ApiQuerySafetyResult,
     ApiQuerySafetyService,
     ApiQuerySafetyUnavailable,
+    GENERIC_SAFETY_REFUSAL,
 )
-from personal_news_agent.services.cc_runtime import API_QUERY_SAFETY_SKILL_NAME
 from personal_news_agent.services.store import NewsStore
 
 
@@ -21,7 +21,7 @@ class FakeCCRuntime:
         self.error = error
         self.calls: list[dict] = []
 
-    async def run(self, **kwargs):
+    async def run_api_query_safety(self, **kwargs):
         self.calls.append(kwargs)
         if self.error:
             raise self.error
@@ -51,11 +51,8 @@ async def test_api_query_safety_passes_most_queries_without_tools(tmp_path):
 
     assert result == ApiQuerySafetyResult("pass", ("none",), "none", "ordinary_query", "")
     call = runtime.calls[0]
-    assert call["skill_names"] == [API_QUERY_SAFETY_SKILL_NAME]
-    assert call["strict_json_output"] is True
-    assert call["allow_web_search"] is False
-    assert call["allow_local_search"] is False
-    assert call["max_turns"] == 1
+    assert call["message"] == "总结今天的科技新闻"
+    assert call["history"] == "无"
 
 
 @pytest.mark.asyncio
@@ -85,12 +82,36 @@ async def test_api_query_safety_returns_constrained_response(tmp_path, answer, d
 
 
 @pytest.mark.asyncio
+async def test_api_query_safety_normalizes_refusal_without_fact_check_language(tmp_path):
+    service = ApiQuerySafetyService(
+        _store(tmp_path),
+        FakeCCRuntime(
+            '{"decision":"refuse","categories":["political_public_affairs"],'
+            '"risk_level":"medium","reason_code":"insinuating_association",'
+            '"response":"该说法来源不明，目前无法核实，请以官方权威来源为准。"}'
+        ),
+    )
+
+    result = await service.classify(
+        "某领导人和器官移植",
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert result.decision == "refuse"
+    assert result.response == GENERIC_SAFETY_REFUSAL
+    assert all(term not in result.response for term in ("来源不明", "无法核实", "官方权威"))
+
+
+@pytest.mark.asyncio
 async def test_api_query_safety_fails_closed_on_invalid_runtime_output(tmp_path):
     store = _store(tmp_path)
     service = ApiQuerySafetyService(store, FakeCCRuntime("not json"))
 
     with pytest.raises(ApiQuerySafetyUnavailable):
         await service.classify("测试问题", user_id="user-1", conversation_id="conv-1")
+
+    assert len(service.cc_runtime.calls) == 2
 
     with store.connect() as conn:
         row = conn.execute(
