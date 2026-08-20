@@ -22,6 +22,7 @@ from personal_news_agent.services.chat_understanding import (
     time_range_from_message,
 )
 from personal_news_agent.services.llm import LLMClient
+from personal_news_agent.services.api_query_safety import ApiQuerySafetyUnavailable
 from personal_news_agent.services.article_fetch import canonicalize_url
 from personal_news_agent.services.cc_runtime import (
     NEWS_CONVERSATION_RESEARCH_SKILL_NAME,
@@ -130,6 +131,7 @@ class NewsChatService:
         content_moderation: Any | None = None,
         local_agent: LocalAgentService | None = None,
         cc_runtime: Any | None = None,
+        api_query_safety: Any | None = None,
         skill_registry: Any | None = None,
         services: dict[str, Any] | None = None,
     ):
@@ -144,6 +146,7 @@ class NewsChatService:
         self.content_moderation = content_moderation
         self.local_agent = local_agent or LocalAgentService()
         self.cc_runtime = cc_runtime
+        self.api_query_safety = api_query_safety
         self.skill_registry = skill_registry
         self.services = services or {}
         self.topic_drift_notice = TOPIC_DRIFT_NOTICE
@@ -159,10 +162,53 @@ class NewsChatService:
         allow_web_search: bool = False,
         model_key: str = DEFAULT_LOGICAL_MODEL,
         conversation_mode: str = "auto",
+        enforce_api_safety: bool = False,
     ) -> ChatResponse:
         conv_id = conversation_id or f"conv_{uuid4().hex[:12]}"
         topic, category_scope = self._resolve_conversation_context(conv_id, message, topic, category_scope, user_id)
         save_topic = self._request_topic_for_save(message, topic)
+        if enforce_api_safety and not self.api_query_safety:
+            raise ApiQuerySafetyUnavailable("API query safety service is unavailable")
+        if enforce_api_safety:
+            history = _conversation_history_text(
+                self._conversation_memory(conv_id, user_id, current_limit=4, recent_limit=0),
+                turn_limit=4,
+                question_limit=260,
+                answer_limit=800,
+            )
+            safety = await self.api_query_safety.classify(
+                message,
+                user_id=user_id,
+                conversation_id=conv_id,
+                history=history,
+            )
+            if safety.decision != "pass":
+                response = ChatResponse(
+                    conversation_id=conv_id,
+                    answer=safety.response,
+                    markdown=safety.response,
+                    context_relation=f"api_query_safety_{safety.decision}",
+                    topic=topic,
+                    category_scope=category_scope or [],
+                    focus_object=FocusObject(type="api_query_safety", text=safety.decision),
+                    required_context_items=list(safety.categories),
+                    research_trace=[
+                        {
+                            "stage": "API 请求安全判断",
+                            "status": "completed",
+                            "message": "已按 API 安全策略生成受约束回答。",
+                        }
+                    ],
+                    skill_result={
+                        "type": "api_query_safety",
+                        "decision": safety.decision,
+                        "categories": list(safety.categories),
+                        "risk_level": safety.risk_level,
+                        "reason_code": safety.reason_code,
+                    },
+                )
+                self._save_response_turn(response, message, user_id, save_topic, category_scope)
+                return response
         moderation_response = await self._moderate_query(conv_id, message, user_id)
         if moderation_response:
             self._save_response_turn(moderation_response, message, user_id, save_topic, category_scope)

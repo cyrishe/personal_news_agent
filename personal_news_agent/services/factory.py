@@ -8,6 +8,7 @@ from personal_news_agent.config import Settings
 from personal_news_agent.everyday import EverydayCapabilityService
 from personal_news_agent.services.auth import AuthService
 from personal_news_agent.services.api_keys import ApiKeyService
+from personal_news_agent.services.api_query_safety import ApiQuerySafetyService
 from personal_news_agent.services.chat import NewsChatService
 from personal_news_agent.services.cc_runtime import CCRuntimeOrchestrator
 from personal_news_agent.services.crawl import CrawlScheduler
@@ -94,6 +95,11 @@ def build_services(settings: Settings) -> dict[str, Any]:
         retention_days=settings.conversation_audit_log_retention_days,
     )
     topic_extraction = TopicExtractionService(store)
+    api_query_safety = ApiQuerySafetyService(
+        store,
+        cc_runtime,
+        enabled=settings.api_query_safety_enabled,
+    )
 
     skill_registry = build_default_registry()
     services: dict[str, Any] = {
@@ -112,6 +118,7 @@ def build_services(settings: Settings) -> dict[str, Any]:
             store,
             rate_limit_per_minute=settings.api_key_rate_limit_per_minute,
         ),
+        "api_query_safety": api_query_safety,
         "onboarding": OnboardingService(store, settings),
         "feed": PersonalizationService(store, registry),
         "model_options": public_model_options,
@@ -141,6 +148,7 @@ def build_services(settings: Settings) -> dict[str, Any]:
         content_moderation=content_moderation,
         local_agent=local_agent,
         cc_runtime=cc_runtime,
+        api_query_safety=api_query_safety,
         skill_registry=skill_registry,
         services=services,
     )

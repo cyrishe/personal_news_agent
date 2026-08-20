@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Query Safety"
+  short_description: "Classify API queries and choose pass, refusal, or safe response."
+  default_prompt: "Classify this API query by safety category and return the required response action."

@@ -44,6 +44,7 @@ from personal_news_agent.config import Settings
 from personal_news_agent.core.categories import CATEGORIES
 from personal_news_agent.services.auth import AuthError
 from personal_news_agent.services.api_keys import ApiKeyError, ApiPrincipal
+from personal_news_agent.services.api_query_safety import ApiQuerySafetyUnavailable
 from personal_news_agent.services.report_export import export_report
 from personal_news_agent.services.model_config import DEFAULT_LOGICAL_MODEL
 
@@ -769,7 +770,26 @@ def register_routes(app: FastAPI, services: dict[str, Any], static_dir: Path, se
                 allow_web_search=payload.allow_web_search,
                 model_key=payload.model_key,
                 conversation_mode=payload.conversation_mode,
+                enforce_api_safety=True,
             )
+        except ApiQuerySafetyUnavailable as exc:
+            conversation_audit.record(
+                "error",
+                request_id=request_id,
+                user_id=principal.user_id,
+                conversation_id=conversation_id,
+                channel="api_key_chat",
+                api_key_id=principal.api_key_id,
+                data={
+                    "error_type": type(exc).__name__,
+                    "message": "API query safety service unavailable",
+                    "elapsed_ms": int((time.monotonic() - started_at) * 1000),
+                },
+            )
+            raise HTTPException(
+                status_code=503,
+                detail={"code": "api_query_safety_unavailable", "message": "请求安全检查暂时不可用，请稍后重试。"},
+            ) from exc
         except Exception as exc:
             conversation_audit.record(
                 "error",

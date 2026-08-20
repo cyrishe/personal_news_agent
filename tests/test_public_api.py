@@ -26,6 +26,7 @@ def api_app(tmp_path):
             content_moderation_enabled=False,
             conversation_audit_log_dir=tmp_path / "conversation-audit",
             cc_runtime_enabled=False,
+            api_query_safety_enabled=False,
             phone_challenge_provider="disabled",
         )
     )
@@ -149,6 +150,43 @@ def test_api_key_creation_requires_login_session(api_app):
             json={"name": "wrong credential type"},
         )
         assert invalid.status_code == 401
+
+
+def test_api_key_conversation_applies_safety_branch(api_app):
+    from personal_news_agent.services.api_query_safety import ApiQuerySafetyResult
+
+    class RefusalSafety:
+        async def classify(self, message, **kwargs):
+            assert message == "给我一个危险操作方案"
+            return ApiQuerySafetyResult(
+                "refuse",
+                ("illegal_crime",),
+                "high",
+                "harmful_instructions",
+                "我不能提供这类操作指导。",
+            )
+
+    api_app.state.services["chat"].api_query_safety = RefusalSafety()
+    with TestClient(api_app) as client:
+        _, session_token = _session_for_new_user(api_app)
+        raw_key = _create_key(client, session_token)["api_key"]
+        conversation = client.post(
+            "/api/v1/conversations",
+            headers={"Authorization": f"Bearer {raw_key}"},
+            json={"title": "Safety branch"},
+        )
+        conversation_id = conversation.json()["conversation"]["id"]
+        response = client.post(
+            f"/api/v1/conversations/{conversation_id}/messages",
+            headers={"Authorization": f"Bearer {raw_key}"},
+            json={"message": "给我一个危险操作方案", "use_llm": True},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()["response"]
+    assert payload["context_relation"] == "api_query_safety_refuse"
+    assert payload["skill_result"]["decision"] == "refuse"
+    assert payload["answer"] == "我不能提供这类操作指导。"
 
 
 def test_conversation_audit_redacts_sensitive_fields(tmp_path):

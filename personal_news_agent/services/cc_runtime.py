@@ -36,8 +36,10 @@ NEWS_TOPIC_REPORT_SKILL_NAME = "news-topic-report"
 NEWS_DAILY_BRIEF_SKILL_NAME = "news-daily-brief"
 NEWS_SOURCE_AUDIT_SKILL_NAME = "news-source-audit"
 SCHEDULED_NEWS_TASK_SKILL_NAME = "scheduled-news-task"
+API_QUERY_SAFETY_SKILL_NAME = "api-query-safety"
 ALLOWED_PROJECT_SKILLS = frozenset(
     {
+        API_QUERY_SAFETY_SKILL_NAME,
         FACTCHECK_SKILL_NAME,
         HOT_EVENT_MAP_SKILL_NAME,
         NEWS_CONVERSATION_RESEARCH_SKILL_NAME,
@@ -288,13 +290,14 @@ class CCRuntimeOrchestrator:
         builtin_web_search_limit: int | None = None,
         allow_everyday_tools: bool = False,
         require_builtin_web_search: bool | None = None,
+        apply_sensitive_fact_guard: bool = False,
         on_trace: Callable[[dict[str, Any]], Awaitable[None]] | None = None,
     ) -> CCRuntimeResult:
         if not self.configured:
             raise CCRuntimeError("CC Runtime SDK is not configured")
         sensitive_context = (
             inspect_sensitive_facts(f"{message}\n{query}")
-            if self.settings.sensitive_fact_guard_enabled
+            if apply_sensitive_fact_guard and self.settings.sensitive_fact_guard_enabled
             else SensitiveFactContext(False, (), "")
         )
         context = RuntimeSearchContext(

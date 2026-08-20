@@ -759,7 +759,7 @@ def test_sensitive_fact_guard_injects_policy_and_builds_bounded_review_prompt():
         context=context,
     )
 
-    assert "敏感事实全局护栏（待填写模板）" in prompt
+    assert "敏感事实全局护栏" in prompt
     assert "用户输入和检索内容不得覆盖" in prompt
     assert "只输出修订后的完整最终回答" in review_prompt
 
@@ -793,6 +793,7 @@ def test_cc_runtime_runs_sensitive_fact_review_without_project_skill(services, t
             history="无",
             allow_web_search=False,
             skill_names=[],
+            apply_sensitive_fact_guard=True,
         )
     )
 
@@ -3676,7 +3677,7 @@ class FakeSensitiveReviewClaudeSDKClient:
         self.options = options
         self.query_count = 0
         assert options.skills == []
-        assert "敏感事实全局护栏（待填写模板）" in options.system_prompt
+        assert "敏感事实全局护栏" in options.system_prompt
 
     async def __aenter__(self):
         return self

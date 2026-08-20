@@ -142,7 +142,8 @@ class Settings:
         os.getenv("PNA_CONVERSATION_AUDIT_LOG_RETENTION_DAYS", "30")
     )
     api_key_rate_limit_per_minute: int = int(os.getenv("PNA_API_KEY_RATE_LIMIT_PER_MINUTE", "30"))
-    sensitive_fact_guard_enabled: bool = os.getenv("PNA_SENSITIVE_FACT_GUARD_ENABLED", "1") == "1"
+    api_query_safety_enabled: bool = os.getenv("PNA_API_QUERY_SAFETY_ENABLED", "1") == "1"
+    sensitive_fact_guard_enabled: bool = os.getenv("PNA_SENSITIVE_FACT_GUARD_ENABLED", "0") == "1"
     sensitive_fact_cc_review_enabled: bool = os.getenv("PNA_SENSITIVE_FACT_CC_REVIEW_ENABLED", "0") == "1"
     cc_runtime_enabled: bool = os.getenv("PNA_CC_RUNTIME_ENABLED", "1") == "1"
     cc_runtime_effort: str | None = os.getenv("PNA_CC_RUNTIME_EFFORT") or None
